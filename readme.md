@@ -10,7 +10,7 @@ npm install @swup/scroll-plugin
 and included with import
 
 ```shell
-import SwupGaPlugin from '@swup/scroll-plugin';
+import SwupScrollPlugin from '@swup/scroll-plugin';
 ```
 
 or included from the dist folder
