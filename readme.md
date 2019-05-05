@@ -40,7 +40,7 @@ const swup = new Swup({
 Animation of scroll is adjustable with options `scrollFriction` and `scrollAcceleration`.
 
 ### default options
-```javascipt
+```javascript
 new SwupScrollPlugin({
     doScrollingRightAway: false,
     animateScroll: true,
