@@ -2,7 +2,7 @@ import Plugin from '@swup/plugin';
 import Scrl from 'scrl';
 
 export default class ScrollPlugin extends Plugin {
-    name = "SwupScrollPlugin";
+    name = "ScrollPlugin";
 
     constructor(options) {
         super();

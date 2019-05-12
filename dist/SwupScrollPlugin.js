@@ -46,17 +46,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -76,7 +91,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -86,125 +101,13 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
+var _index = __webpack_require__(1);
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+var _index2 = _interopRequireDefault(_index);
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var Scrl = function Scrl(options) {
-    var _this = this;
-
-    _classCallCheck(this, Scrl);
-
-    this._raf = null;
-    this._positionY = 0;
-    this._velocityY = 0;
-    this._targetPositionY = 0;
-    this._targetPositionYWithOffset = 0;
-    this._direction = 0;
-
-    this.scrollTo = function (offset) {
-        if (offset && offset.nodeType) {
-            // the offset is element
-            _this._targetPositionY = Math.round(offset.getBoundingClientRect().top + window.pageYOffset);
-        } else if (parseInt(_this._targetPositionY) === _this._targetPositionY) {
-            // the offset is a number
-            _this._targetPositionY = Math.round(offset);
-        } else {
-            console.error('Argument must be a number or an element.');
-            return;
-        }
-
-        // don't animate beyond the document height
-        if (_this._targetPositionY > document.documentElement.scrollHeight - window.innerHeight) {
-            _this._targetPositionY = document.documentElement.scrollHeight - window.innerHeight;
-        }
-
-        // calculated required values
-        _this._positionY = document.body.scrollTop || document.documentElement.scrollTop;
-        _this._direction = _this._positionY > _this._targetPositionY ? -1 : 1;
-        _this._targetPositionYWithOffset = _this._targetPositionY + _this._direction;
-        _this._velocityY = 0;
-
-        if (_this._positionY !== _this._targetPositionY) {
-            // start animation
-            _this.options.onStart();
-            _this._animate();
-        } else {
-            // page is already at the position
-            _this.options.onAlreadyAtPositions();
-        }
-    };
-
-    this._animate = function () {
-        var distance = _this._update();
-        _this._render();
-
-        if (_this._direction === 1 && _this._targetPositionY > _this._positionY || _this._direction === -1 && _this._targetPositionY < _this._positionY) {
-            // calculate next position
-            _this._raf = requestAnimationFrame(_this._animate);
-            _this.options.onTick();
-        } else {
-            // finish and set position to the final position
-            _this._positionY = _this._targetPositionY;
-            _this._render();
-            _this._raf = null;
-            _this.options.onTick();
-            _this.options.onEnd();
-            // this.triggerEvent('scrollDone')
-        }
-    };
-
-    this._update = function () {
-        var distance = _this._targetPositionYWithOffset - _this._positionY;
-        var attraction = distance * _this.options.acceleration;
-
-        _this._velocityY += attraction;
-
-        _this._velocityY *= _this.options.friction;
-        _this._positionY += _this._velocityY;
-
-        return Math.abs(distance);
-    };
-
-    this._render = function () {
-        window.scrollTo(0, _this._positionY);
-    };
-
-    // default options
-    var defaults = {
-        onAlreadyAtPositions: function onAlreadyAtPositions() {},
-        onCancel: function onCancel() {},
-        onEnd: function onEnd() {},
-        onStart: function onStart() {},
-        onTick: function onTick() {},
-        friction: .7, // 1 - .3
-        acceleration: .04
-
-        // merge options
-    };this.options = _extends({}, defaults, options);
-
-    // set reverse friction
-    if (options && options.friction) {
-        this.options.friction = 1 - options.friction;
-    }
-
-    // register listener for cancel on wheel event
-    window.addEventListener('mousewheel', function (event) {
-        if (_this._raf) {
-            _this.options.onCancel();
-            cancelAnimationFrame(_this._raf);
-            _this._raf = null;
-        }
-    }, {
-        passive: true
-    });
-};
-
-exports.default = Scrl;
+module.exports = _index2.default; // this is here for webpack to expose SwupPlugin as window.SwupPlugin
 
 /***/ }),
 /* 1 */
@@ -217,59 +120,15 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Plugin = function () {
-    function Plugin() {
-        _classCallCheck(this, Plugin);
-
-        this.isSwupPlugin = true;
-    }
-
-    _createClass(Plugin, [{
-        key: "mount",
-        value: function mount() {
-            // this is mount method rewritten by class extending
-            // and is executed when swup is enabled with plugin
-        }
-    }, {
-        key: "unmount",
-        value: function unmount() {}
-        // this is unmount method rewritten by class extending
-        // and is executed when swup with plugin is disabled
-
-
-        // this is here so we can tell if plugin was created by extending this class
-
-    }]);
-
-    return Plugin;
-}();
-
-exports.default = Plugin;
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _plugin = __webpack_require__(1);
+var _plugin = __webpack_require__(2);
 
 var _plugin2 = _interopRequireDefault(_plugin);
 
-var _scrl = __webpack_require__(0);
+var _scrl = __webpack_require__(3);
 
 var _scrl2 = _interopRequireDefault(_scrl);
 
@@ -289,7 +148,7 @@ var ScrollPlugin = function (_Plugin) {
 
         var _this = _possibleConstructorReturn(this, (ScrollPlugin.__proto__ || Object.getPrototypeOf(ScrollPlugin)).call(this));
 
-        _this.name = "SwupScrollPlugin";
+        _this.name = "ScrollPlugin";
 
         _this.onSamePage = function () {
             _this.swup.scrollTo(0);
@@ -424,19 +283,175 @@ var ScrollPlugin = function (_Plugin) {
 exports.default = ScrollPlugin;
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Plugin = function () {
+    function Plugin() {
+        _classCallCheck(this, Plugin);
+
+        this.isSwupPlugin = true;
+    }
+
+    _createClass(Plugin, [{
+        key: "mount",
+        value: function mount() {
+            // this is mount method rewritten by class extending
+            // and is executed when swup is enabled with plugin
+        }
+    }, {
+        key: "unmount",
+        value: function unmount() {}
+        // this is unmount method rewritten by class extending
+        // and is executed when swup with plugin is disabled
+
+
+        // this is here so we can tell if plugin was created by extending this class
+
+    }]);
+
+    return Plugin;
+}();
+
+exports.default = Plugin;
+
+/***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _index = __webpack_require__(2);
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
-var _index2 = _interopRequireDefault(_index);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = _index2.default; // this is here for webpack to expose SwupPlugin as window.SwupPlugin
+var Scrl = function Scrl(options) {
+    var _this = this;
+
+    _classCallCheck(this, Scrl);
+
+    this._raf = null;
+    this._positionY = 0;
+    this._velocityY = 0;
+    this._targetPositionY = 0;
+    this._targetPositionYWithOffset = 0;
+    this._direction = 0;
+
+    this.scrollTo = function (offset) {
+        if (offset && offset.nodeType) {
+            // the offset is element
+            _this._targetPositionY = Math.round(offset.getBoundingClientRect().top + window.pageYOffset);
+        } else if (parseInt(_this._targetPositionY) === _this._targetPositionY) {
+            // the offset is a number
+            _this._targetPositionY = Math.round(offset);
+        } else {
+            console.error('Argument must be a number or an element.');
+            return;
+        }
+
+        // don't animate beyond the document height
+        if (_this._targetPositionY > document.documentElement.scrollHeight - window.innerHeight) {
+            _this._targetPositionY = document.documentElement.scrollHeight - window.innerHeight;
+        }
+
+        // calculated required values
+        _this._positionY = document.body.scrollTop || document.documentElement.scrollTop;
+        _this._direction = _this._positionY > _this._targetPositionY ? -1 : 1;
+        _this._targetPositionYWithOffset = _this._targetPositionY + _this._direction;
+        _this._velocityY = 0;
+
+        if (_this._positionY !== _this._targetPositionY) {
+            // start animation
+            _this.options.onStart();
+            _this._animate();
+        } else {
+            // page is already at the position
+            _this.options.onAlreadyAtPositions();
+        }
+    };
+
+    this._animate = function () {
+        var distance = _this._update();
+        _this._render();
+
+        if (_this._direction === 1 && _this._targetPositionY > _this._positionY || _this._direction === -1 && _this._targetPositionY < _this._positionY) {
+            // calculate next position
+            _this._raf = requestAnimationFrame(_this._animate);
+            _this.options.onTick();
+        } else {
+            // finish and set position to the final position
+            _this._positionY = _this._targetPositionY;
+            _this._render();
+            _this._raf = null;
+            _this.options.onTick();
+            _this.options.onEnd();
+            // this.triggerEvent('scrollDone')
+        }
+    };
+
+    this._update = function () {
+        var distance = _this._targetPositionYWithOffset - _this._positionY;
+        var attraction = distance * _this.options.acceleration;
+
+        _this._velocityY += attraction;
+
+        _this._velocityY *= _this.options.friction;
+        _this._positionY += _this._velocityY;
+
+        return Math.abs(distance);
+    };
+
+    this._render = function () {
+        window.scrollTo(0, _this._positionY);
+    };
+
+    // default options
+    var defaults = {
+        onAlreadyAtPositions: function onAlreadyAtPositions() {},
+        onCancel: function onCancel() {},
+        onEnd: function onEnd() {},
+        onStart: function onStart() {},
+        onTick: function onTick() {},
+        friction: .7, // 1 - .3
+        acceleration: .04
+
+        // merge options
+    };this.options = _extends({}, defaults, options);
+
+    // set reverse friction
+    if (options && options.friction) {
+        this.options.friction = 1 - options.friction;
+    }
+
+    // register listener for cancel on wheel event
+    window.addEventListener('mousewheel', function (event) {
+        if (_this._raf) {
+            _this.options.onCancel();
+            cancelAnimationFrame(_this._raf);
+            _this._raf = null;
+        }
+    }, {
+        passive: true
+    });
+};
+
+exports.default = Scrl;
 
 /***/ })
 /******/ ]);

@@ -1,6 +1,6 @@
 {
   "name": "@swup/scroll-plugin",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Swup scroll plugin.",
   "main": "lib/index.js",
   "scripts": {
