@@ -39,6 +39,19 @@ const swup = new Swup({
 ### scrollFriction and scrollAcceleration
 Animation of scroll is adjustable with options `scrollFriction` and `scrollAcceleration`.
 
+### offset
+Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
+
+```javascript
+{
+  // Number: fixed offset in px
+  offset: 30,
+
+  // Function: calculate offset before scrolling
+  offset: () => document.querySelector('#header').offsetHeight
+}
+```
+
 ### default options
 ```javascript
 new SwupScrollPlugin({
@@ -46,6 +59,7 @@ new SwupScrollPlugin({
     animateScroll: true,
     scrollFriction: 0.3,
     scrollAcceleration: 0.04,
+    offset: 0,
 });
 ```
 
