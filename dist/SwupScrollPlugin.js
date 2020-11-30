@@ -153,13 +153,15 @@ var ScrollPlugin = function (_Plugin) {
         _this.name = "ScrollPlugin";
 
         _this.getOffset = function () {
+            var element = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
             switch (_typeof(_this.options.offset)) {
                 case 'number':
                     return _this.options.offset;
                 case 'function':
-                    return _this.options.offset();
+                    return parseInt(_this.options.offset(element), 10);
                 default:
-                    return Number(_this.options.offset);
+                    return parseInt(_this.options.offset, 10);
             }
         };
 
@@ -170,7 +172,7 @@ var ScrollPlugin = function (_Plugin) {
         _this.onSamePageWithHash = function (event) {
             var link = event.delegateTarget;
             var element = document.querySelector(link.hash);
-            var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset();
+            var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
             _this.swup.scrollTo(top);
         };
 
@@ -193,7 +195,7 @@ var ScrollPlugin = function (_Plugin) {
                 if (swup.scrollToElement != null) {
                     var element = document.querySelector(swup.scrollToElement);
                     if (element != null) {
-                        var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset();
+                        var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
                         swup.scrollTo(top);
                     } else {
                         console.warn('Element ' + swup.scrollToElement + ' not found');
