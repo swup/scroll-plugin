@@ -122,6 +122,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _plugin = __webpack_require__(2);
@@ -150,6 +152,19 @@ var ScrollPlugin = function (_Plugin) {
 
         _this.name = "ScrollPlugin";
 
+        _this.getOffset = function () {
+            var element = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
+            switch (_typeof(_this.options.offset)) {
+                case 'number':
+                    return _this.options.offset;
+                case 'function':
+                    return parseInt(_this.options.offset(element), 10);
+                default:
+                    return parseInt(_this.options.offset, 10);
+            }
+        };
+
         _this.onSamePage = function () {
             _this.swup.scrollTo(0);
         };
@@ -157,7 +172,7 @@ var ScrollPlugin = function (_Plugin) {
         _this.onSamePageWithHash = function (event) {
             var link = event.delegateTarget;
             var element = document.querySelector(link.hash);
-            var top = element.getBoundingClientRect().top + window.pageYOffset;
+            var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
             _this.swup.scrollTo(top);
         };
 
@@ -180,7 +195,7 @@ var ScrollPlugin = function (_Plugin) {
                 if (swup.scrollToElement != null) {
                     var element = document.querySelector(swup.scrollToElement);
                     if (element != null) {
-                        var top = element.getBoundingClientRect().top + window.pageYOffset;
+                        var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
                         swup.scrollTo(top);
                     } else {
                         console.warn('Element ' + swup.scrollToElement + ' not found');
@@ -196,7 +211,8 @@ var ScrollPlugin = function (_Plugin) {
             doScrollingRightAway: false,
             animateScroll: true,
             scrollFriction: 0.3,
-            scrollAcceleration: 0.04
+            scrollAcceleration: 0.04,
+            offset: 0
         };
 
         _this.options = _extends({}, defaultOptions, options);
