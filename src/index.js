@@ -99,7 +99,7 @@ export default class ScrollPlugin extends Plugin {
 
     onSamePageWithHash = event => {
         const link = event.delegateTarget;
-        const element = document.querySelector(link.hash);
+        const element = document.getElementById(decodeURI(link.hash.substring(1)));
         const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
         this.swup.scrollTo(top);
     }

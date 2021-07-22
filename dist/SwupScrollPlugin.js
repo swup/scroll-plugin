@@ -171,7 +171,7 @@ var ScrollPlugin = function (_Plugin) {
 
         _this.onSamePageWithHash = function (event) {
             var link = event.delegateTarget;
-            var element = document.querySelector(link.hash);
+            var element = document.getElementById(decodeURI(link.hash.substring(1)));
             var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
             _this.swup.scrollTo(top);
         };
