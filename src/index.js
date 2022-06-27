@@ -23,7 +23,7 @@ export default class ScrollPlugin extends Plugin {
     mount() {
         const swup = this.swup;
 
-        // add empty handlers array for submitForm event
+        // add empty handlers array for scroll events
         swup._handlers.scrollDone = [];
         swup._handlers.scrollStart = [];
 
@@ -82,6 +82,15 @@ export default class ScrollPlugin extends Plugin {
         window.history.scrollRestoration = 'auto';
     }
 
+    getAnchorElement = (hash = '') => {
+        if (typeof this.swup.getAnchorElement === 'function') {
+            // Helper only added in swup 2.0.16
+            return this.swup.getAnchorElement(hash);
+        } else {
+            return document.querySelector(hash);
+        }
+    }
+
     getOffset = (element = null) => {
         switch (typeof this.options.offset) {
             case 'number':
@@ -99,7 +108,7 @@ export default class ScrollPlugin extends Plugin {
 
     onSamePageWithHash = event => {
         const link = event.delegateTarget;
-        const element = document.querySelector(link.hash);
+        const element = this.getAnchorElement(link.hash);
         const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
         this.swup.scrollTo(top);
     }
@@ -121,7 +130,7 @@ export default class ScrollPlugin extends Plugin {
 
         if (!popstate || swup.options.animateHistoryBrowsing) {
             if (swup.scrollToElement != null) {
-                const element = document.querySelector(swup.scrollToElement);
+                const element = this.getAnchorElement(swup.scrollToElement);
                 if (element != null) {
                     let top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
                     swup.scrollTo(top);
