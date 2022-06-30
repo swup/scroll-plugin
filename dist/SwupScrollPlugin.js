@@ -152,6 +152,17 @@ var ScrollPlugin = function (_Plugin) {
 
         _this.name = "ScrollPlugin";
 
+        _this.getAnchorElement = function () {
+            var hash = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+            if (typeof _this.swup.getAnchorElement === 'function') {
+                // Helper only added in swup 2.0.16
+                return _this.swup.getAnchorElement(hash);
+            } else {
+                return document.querySelector(hash);
+            }
+        };
+
         _this.getOffset = function () {
             var element = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 
@@ -171,7 +182,7 @@ var ScrollPlugin = function (_Plugin) {
 
         _this.onSamePageWithHash = function (event) {
             var link = event.delegateTarget;
-            var element = document.querySelector(link.hash);
+            var element = _this.getAnchorElement(link.hash);
             var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
             _this.swup.scrollTo(top);
         };
@@ -193,7 +204,7 @@ var ScrollPlugin = function (_Plugin) {
 
             if (!popstate || swup.options.animateHistoryBrowsing) {
                 if (swup.scrollToElement != null) {
-                    var element = document.querySelector(swup.scrollToElement);
+                    var element = _this.getAnchorElement(swup.scrollToElement);
                     if (element != null) {
                         var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
                         swup.scrollTo(top);
@@ -226,7 +237,7 @@ var ScrollPlugin = function (_Plugin) {
 
             var swup = this.swup;
 
-            // add empty handlers array for submitForm event
+            // add empty handlers array for scroll events
             swup._handlers.scrollDone = [];
             swup._handlers.scrollStart = [];
 
