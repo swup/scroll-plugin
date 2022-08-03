@@ -1,6 +1,7 @@
 # Swup Scroll plugin
 
-## Instalation
+## Installation
+
 This plugin can be installed with npm
 
 ```bash
@@ -30,16 +31,33 @@ const swup = new Swup({
 ```
 
 ## Options
+
 ### doScrollingRightAway
+
 `doScrollingRightAway` defines if swup is supposed to wait for the replace of the page to scroll to the top.
 
 ### animateScroll
-`animateScroll` defines whether the scroll animation is enabled or swup simply sets the scroll without animation instead.
+
+`animateScroll` defines whether the scroll animation is enabled or swup simply sets the scroll
+without animation instead. Passing `true` or `false` will enable or disable all scroll animations.
+For finer control, you can pass an object:
+
+```javascript
+{
+  animateScroll: {
+    betweenPages: true,
+    samePageWithHash: true,
+    samePage: true
+  }
+}
+```
 
 ### scrollFriction and scrollAcceleration
+
 Animation of scroll is adjustable with options `scrollFriction` and `scrollAcceleration`.
 
 ### offset
+
 Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
 
 ```javascript
@@ -55,7 +73,8 @@ Offset to substract from the final scroll position, to account for fixed headers
 }
 ```
 
-### default options
+### Default options
+
 ```javascript
 new SwupScrollPlugin({
     doScrollingRightAway: false,
@@ -67,6 +86,7 @@ new SwupScrollPlugin({
 ```
 
 ## Changes of swup instance
+
 Plugins ads `scrollTo` method to the swup instance, which can be later used for custom scrolling.
 Method accepts offset in pixels or element you want to scroll to.
 
