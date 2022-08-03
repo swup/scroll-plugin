@@ -177,14 +177,14 @@ var ScrollPlugin = function (_Plugin) {
         };
 
         _this.onSamePage = function () {
-            _this.swup.scrollTo(0);
+            _this.swup.scrollTo(0, _this.shouldAnimate('samePage'));
         };
 
         _this.onSamePageWithHash = function (event) {
             var link = event.delegateTarget;
             var element = _this.getAnchorElement(link.hash);
             var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
-            _this.swup.scrollTo(top);
+            _this.swup.scrollTo(top, _this.shouldAnimate('samePageWithHash'));
         };
 
         _this.onTransitionStart = function (popstate) {
@@ -207,20 +207,24 @@ var ScrollPlugin = function (_Plugin) {
                     var element = _this.getAnchorElement(swup.scrollToElement);
                     if (element != null) {
                         var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
-                        swup.scrollTo(top);
+                        swup.scrollTo(top, _this.shouldAnimate('betweenPages'));
                     } else {
                         console.warn('Element ' + swup.scrollToElement + ' not found');
                     }
                     swup.scrollToElement = null;
                 } else {
-                    swup.scrollTo(0);
+                    swup.scrollTo(0, _this.shouldAnimate('betweenPages'));
                 }
             }
         };
 
         var defaultOptions = {
             doScrollingRightAway: false,
-            animateScroll: true,
+            animateScroll: {
+                betweenPages: true,
+                samePageWithHash: true,
+                samePage: true
+            },
             scrollFriction: 0.3,
             scrollAcceleration: 0.04,
             offset: 0
@@ -257,7 +261,9 @@ var ScrollPlugin = function (_Plugin) {
 
             // set scrollTo method of swup and animate based on current animateScroll option
             swup.scrollTo = function (offset) {
-                if (_this2.options.animateScroll) {
+                var animate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+                if (animate) {
                     _this2.scrl.scrollTo(offset);
                 } else {
                     swup.triggerEvent('scrollStart');
@@ -301,6 +307,15 @@ var ScrollPlugin = function (_Plugin) {
             this.swup._handlers.scrollStart = null;
 
             window.history.scrollRestoration = 'auto';
+        }
+    }, {
+        key: 'shouldAnimate',
+        value: function shouldAnimate(type) {
+            if (typeof this.options.animateScroll === 'boolean') {
+                return this.options.animateScroll;
+            } else {
+                return this.options.animateScroll[type];
+            }
         }
     }]);
 
