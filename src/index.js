@@ -8,7 +8,11 @@ export default class ScrollPlugin extends Plugin {
         super();
         const defaultOptions = {
             doScrollingRightAway: false,
-            animateScroll: true,
+            animateScroll: {
+                betweenPages: true,
+                samePageWithHash: true,
+                samePage: true,
+            },
             scrollFriction: 0.3,
             scrollAcceleration: 0.04,
             offset: 0,
@@ -36,8 +40,8 @@ export default class ScrollPlugin extends Plugin {
         });
 
         // set scrollTo method of swup and animate based on current animateScroll option
-        swup.scrollTo = offset => {
-            if (this.options.animateScroll) {
+        swup.scrollTo = (offset, animate = true) => {
+            if (animate) {
                 this.scrl.scrollTo(offset);
             } else {
                 swup.triggerEvent('scrollStart');
@@ -82,6 +86,14 @@ export default class ScrollPlugin extends Plugin {
         window.history.scrollRestoration = 'auto';
     }
 
+    shouldAnimate(type) {
+        if (typeof this.options.animateScroll === 'boolean') {
+            return this.options.animateScroll;
+        } else {
+            return this.options.animateScroll[type];
+        }
+    }
+
     getAnchorElement = (hash = '') => {
         if (typeof this.swup.getAnchorElement === 'function') {
             // Helper only added in swup 2.0.16
@@ -103,14 +115,14 @@ export default class ScrollPlugin extends Plugin {
     }
 
     onSamePage = () => {
-        this.swup.scrollTo(0);
+        this.swup.scrollTo(0, this.shouldAnimate('samePage'));
     }
 
     onSamePageWithHash = event => {
         const link = event.delegateTarget;
         const element = this.getAnchorElement(link.hash);
         const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
-        this.swup.scrollTo(top);
+        this.swup.scrollTo(top, this.shouldAnimate('samePageWithHash'));
     }
 
     onTransitionStart = popstate => {
@@ -133,13 +145,13 @@ export default class ScrollPlugin extends Plugin {
                 const element = this.getAnchorElement(swup.scrollToElement);
                 if (element != null) {
                     let top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
-                    swup.scrollTo(top);
+                    swup.scrollTo(top, this.shouldAnimate('betweenPages'));
                 } else {
                     console.warn(`Element ${swup.scrollToElement} not found`);
                 }
                 swup.scrollToElement = null;
             } else {
-                swup.scrollTo(0);
+                swup.scrollTo(0, this.shouldAnimate('betweenPages'));
             }
         }
     };
