@@ -87,11 +87,16 @@ export default class ScrollPlugin extends Plugin {
     }
 
     shouldAnimate(type) {
+        // Disable all animations for users with the setting "prefers-reduced-motion: reduce"
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return false;
+        }
+
         if (typeof this.options.animateScroll === 'boolean') {
             return this.options.animateScroll;
-        } else {
-            return this.options.animateScroll[type];
         }
+
+        return this.options.animateScroll[type];
     }
 
     getAnchorElement = (hash = '') => {
