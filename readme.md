@@ -56,6 +56,21 @@ For finer control, you can pass an object:
 
 Animation of scroll is adjustable with options `scrollFriction` and `scrollAcceleration`.
 
+### getAnchorElement
+
+Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).
+
+```javascript
+{
+  // Use a custom data attribute instead of id
+  getAnchorElement: hash => {
+    hash = hash.replace('#', '')
+    return document.querySelector(`[data-scroll-target="${hash}"]`)
+  }
+}
+```
+
+
 ### offset
 
 Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
