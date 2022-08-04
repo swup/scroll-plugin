@@ -124,6 +124,10 @@ export default class ScrollPlugin extends Plugin {
     onSamePageWithHash = event => {
         const link = event.delegateTarget;
         const element = this.getAnchorElement(link.hash);
+        if (!element) {
+            console.warn(`Element ${link.hash} not found`);
+            return
+        }
         const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
         this.swup.scrollTo(top, this.shouldAnimate('samePageWithHash'));
     }
