@@ -128,6 +128,10 @@ export default class ScrollPlugin extends Plugin {
             console.warn(`Element ${link.hash} not found`);
             return
         }
+        if (!(element instanceof Element)) {
+            console.warn(`Element ${link.hash} is not a DOM node`);
+            return
+        }
         const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
         this.swup.scrollTo(top, this.shouldAnimate('samePageWithHash'));
     }
