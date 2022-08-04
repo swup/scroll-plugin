@@ -15,6 +15,7 @@ export default class ScrollPlugin extends Plugin {
             },
             scrollFriction: 0.3,
             scrollAcceleration: 0.04,
+            getAnchorElement: null,
             offset: 0,
         };
 
@@ -95,7 +96,9 @@ export default class ScrollPlugin extends Plugin {
     }
 
     getAnchorElement = (hash = '') => {
-        if (typeof this.swup.getAnchorElement === 'function') {
+        if (typeof this.options.getAnchorElement === 'function') {
+            return this.options.getAnchorElement(hash);
+        } else if (typeof this.swup.getAnchorElement === 'function') {
             // Helper only added in swup 2.0.16
             return this.swup.getAnchorElement(hash);
         } else {
@@ -121,6 +124,14 @@ export default class ScrollPlugin extends Plugin {
     onSamePageWithHash = event => {
         const link = event.delegateTarget;
         const element = this.getAnchorElement(link.hash);
+        if (!element) {
+            console.warn(`Element ${link.hash} not found`);
+            return
+        }
+        if (!(element instanceof Element)) {
+            console.warn(`Element ${link.hash} is not a DOM node`);
+            return
+        }
         const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
         this.swup.scrollTo(top, this.shouldAnimate('samePageWithHash'));
     }
@@ -144,7 +155,7 @@ export default class ScrollPlugin extends Plugin {
             if (swup.scrollToElement != null) {
                 const element = this.getAnchorElement(swup.scrollToElement);
                 if (element != null) {
-                    let top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
+                    const top = element.getBoundingClientRect().top + window.pageYOffset - this.getOffset(element);
                     swup.scrollTo(top, this.shouldAnimate('betweenPages'));
                 } else {
                     console.warn(`Element ${swup.scrollToElement} not found`);

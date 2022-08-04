@@ -155,7 +155,9 @@ var ScrollPlugin = function (_Plugin) {
         _this.getAnchorElement = function () {
             var hash = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
-            if (typeof _this.swup.getAnchorElement === 'function') {
+            if (typeof _this.options.getAnchorElement === 'function') {
+                return _this.options.getAnchorElement(hash);
+            } else if (typeof _this.swup.getAnchorElement === 'function') {
                 // Helper only added in swup 2.0.16
                 return _this.swup.getAnchorElement(hash);
             } else {
@@ -183,6 +185,10 @@ var ScrollPlugin = function (_Plugin) {
         _this.onSamePageWithHash = function (event) {
             var link = event.delegateTarget;
             var element = _this.getAnchorElement(link.hash);
+            if (!element) {
+                console.warn('Element ' + link.hash + ' not found');
+                return;
+            }
             var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
             _this.swup.scrollTo(top, _this.shouldAnimate('samePageWithHash'));
         };
@@ -227,6 +233,7 @@ var ScrollPlugin = function (_Plugin) {
             },
             scrollFriction: 0.3,
             scrollAcceleration: 0.04,
+            getAnchorElement: null,
             offset: 0
         };
 
