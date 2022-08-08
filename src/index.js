@@ -17,6 +17,7 @@ export default class ScrollPlugin extends Plugin {
             scrollAcceleration: 0.04,
             getAnchorElement: null,
             offset: 0,
+            scrollContainersSelector: `[data-swup-scroll-container]`
         };
 
         this.options = {
@@ -202,7 +203,7 @@ export default class ScrollPlugin extends Plugin {
         elements: []
       }
       // fill up the object with scroll positions for each matching element
-      const $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+      const $elements = document.querySelectorAll(this.options.scrollContainersSelector);
       $elements.forEach(el => storeEntry.elements.push({
         top: el.scrollTop, 
         left: el.scrollLeft
@@ -234,8 +235,9 @@ export default class ScrollPlugin extends Plugin {
       if (scrollPositions.elements == null) {
         return;
       }
+      
       // cycle through all elements on the current page and restore their scroll positions, if appropriate
-      const $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+      const $elements = document.querySelectorAll(this.options.scrollContainersSelector);
       $elements.forEach((el, index) => {
         const scrollPosition = scrollPositions.elements[index];
         if (scrollPosition == null) return;
