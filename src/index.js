@@ -17,7 +17,10 @@ export default class ScrollPlugin extends Plugin {
             scrollAcceleration: 0.04,
             getAnchorElement: null,
             offset: 0,
-            scrollContainersSelector: `[data-swup-scroll-container]`
+            scrollContainersSelector: `[data-swup-scroll-container]`,
+            skipDeletingScrollPositions: el => {
+                return false;
+            }
         };
 
         this.options = {
@@ -159,9 +162,7 @@ export default class ScrollPlugin extends Plugin {
             this.doScrolling(popstate);
         }
         
-        if( popstate ) {
-            this.restoreScrollPositions()
-        }
+        this.restoreScrollPositions()
     }
 
     doScrolling = popstate => {
@@ -189,6 +190,9 @@ export default class ScrollPlugin extends Plugin {
     }
 
     onClickLink = (e) => {
+        if( this.options.skipDeletingScrollPositions(e.delegateTarget) ) {
+            return;
+        }
         this.deleteStoredScrollPositions(e.delegateTarget.href);
     }
 

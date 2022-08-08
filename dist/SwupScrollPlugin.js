@@ -208,9 +208,7 @@ var ScrollPlugin = function (_Plugin) {
                 _this.doScrolling(popstate);
             }
 
-            if (popstate) {
-                _this.restoreScrollPositions();
-            }
+            _this.restoreScrollPositions();
         };
 
         _this.doScrolling = function (popstate) {
@@ -238,6 +236,9 @@ var ScrollPlugin = function (_Plugin) {
         };
 
         _this.onClickLink = function (e) {
+            if (_this.options.skipDeletingScrollPositions(e.delegateTarget)) {
+                return;
+            }
             _this.deleteStoredScrollPositions(e.delegateTarget.href);
         };
 
@@ -251,7 +252,11 @@ var ScrollPlugin = function (_Plugin) {
             scrollFriction: 0.3,
             scrollAcceleration: 0.04,
             getAnchorElement: null,
-            offset: 0
+            offset: 0,
+            scrollContainersSelector: '[data-swup-scroll-container]',
+            skipDeletingScrollPositions: function skipDeletingScrollPositions(el) {
+                return false;
+            }
         };
 
         _this.options = _extends({}, defaultOptions, options);
@@ -366,7 +371,7 @@ var ScrollPlugin = function (_Plugin) {
                 window: { top: window.scrollY, left: window.scrollX },
                 elements: []
                 // fill up the object with scroll positions for each matching element
-            };var $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+            };var $elements = document.querySelectorAll(this.options.scrollContainersSelector);
             $elements.forEach(function (el) {
                 return storeEntry.elements.push({
                     top: el.scrollTop,
@@ -406,8 +411,9 @@ var ScrollPlugin = function (_Plugin) {
             if (scrollPositions.elements == null) {
                 return;
             }
+
             // cycle through all elements on the current page and restore their scroll positions, if appropriate
-            var $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+            var $elements = document.querySelectorAll(this.options.scrollContainersSelector);
             $elements.forEach(function (el, index) {
                 var scrollPosition = scrollPositions.elements[index];
                 if (scrollPosition == null) return;
