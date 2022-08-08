@@ -51,6 +51,21 @@ For finer control, you can pass an object:
   }
 }
 ```
+💡 We encourage you to respect user preferences when setting the `animateScroll` option:
+```javascript
+// Using a simple boolean...
+{
+  animateScroll: !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+// ...or this little monster, with full control over everything:
+{
+  animateScroll: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : {
+    betweenPages: true,
+    samePageWithHash: true,
+    samePage: true
+  }
+}
+```
 
 ### scrollFriction and scrollAcceleration
 
@@ -58,7 +73,7 @@ Animation of scroll is adjustable with options `scrollFriction` and `scrollAccel
 
 ### getAnchorElement
 
-Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).
+Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).💡💡
 
 ```javascript
 {
