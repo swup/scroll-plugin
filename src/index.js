@@ -26,7 +26,8 @@ export default class ScrollPlugin extends Plugin {
 
         // This object will hold all scroll positions
         this.scrollPositionsStore = {};
-        this.lastUrl = window.location.href;
+        // this URL helps with storing the current scroll positions on `willReplaceContent`
+        this.previousUrl = window.location.href;
     }
 
     mount() {
@@ -182,8 +183,8 @@ export default class ScrollPlugin extends Plugin {
     }
 
     onWillReplaceContent = () => {
-        this.storeScrollPositions(this.lastUrl);
-        this.lastUrl = window.location.href;
+        this.storeScrollPositions(this.previousUrl);
+        this.previousUrl = window.location.href;
     }
 
     onClickLink = (e) => {

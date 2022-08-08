@@ -233,8 +233,8 @@ var ScrollPlugin = function (_Plugin) {
         };
 
         _this.onWillReplaceContent = function () {
-            _this.storeScrollPositions(_this.lastUrl);
-            _this.lastUrl = window.location.href;
+            _this.storeScrollPositions(_this.previousUrl);
+            _this.previousUrl = window.location.href;
         };
 
         _this.onClickLink = function (e) {
@@ -258,7 +258,8 @@ var ScrollPlugin = function (_Plugin) {
 
         // This object will hold all scroll positions
         _this.scrollPositionsStore = {};
-        _this.lastUrl = window.location.href;
+        // this URL helps with storing the current scroll positions on `willReplaceContent`
+        _this.previousUrl = window.location.href;
         return _this;
     }
 
