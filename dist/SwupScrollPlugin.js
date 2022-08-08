@@ -189,6 +189,10 @@ var ScrollPlugin = function (_Plugin) {
                 console.warn('Element ' + link.hash + ' not found');
                 return;
             }
+            if (!(element instanceof Element)) {
+                console.warn('Element ' + link.hash + ' is not a DOM node');
+                return;
+            }
             var top = element.getBoundingClientRect().top + window.pageYOffset - _this.getOffset(element);
             _this.swup.scrollTo(top, _this.shouldAnimate('samePageWithHash'));
         };
@@ -202,6 +206,9 @@ var ScrollPlugin = function (_Plugin) {
         _this.onContentReplaced = function (popstate) {
             if (!_this.options.doScrollingRightAway || _this.swup.scrollToElement) {
                 _this.doScrolling(popstate);
+            }
+            if (popstate) {
+                _this.restoreScrollPositions();
             }
         };
 
@@ -224,6 +231,13 @@ var ScrollPlugin = function (_Plugin) {
             }
         };
 
+        _this.onClickLink = function (e) {
+            // delete the scroll positions for the next page (navigation without popstate)
+            _this.deleteStoredScrollPositions(e.delegateTarget.href);
+            // store the scroll positions for the current page
+            _this.storeScrollPositions(window.location.href);
+        };
+
         var defaultOptions = {
             doScrollingRightAway: false,
             animateScroll: {
@@ -238,6 +252,9 @@ var ScrollPlugin = function (_Plugin) {
         };
 
         _this.options = _extends({}, defaultOptions, options);
+
+        // This object will hold all scroll positions
+        _this.scrollPositionsStore = {};
         return _this;
     }
 
@@ -296,6 +313,9 @@ var ScrollPlugin = function (_Plugin) {
 
             // scroll to the referenced element when it's in the page (after render)
             swup.on('contentReplaced', this.onContentReplaced);
+
+            // store the current scroll positions
+            swup.on('clickLink', this.onClickLink);
         }
     }, {
         key: 'unmount',
@@ -309,6 +329,7 @@ var ScrollPlugin = function (_Plugin) {
             this.swup.off('samePageWithHash', this.onSamePageWithHash);
             this.swup.off('transitionStart', this.onTransitionStart);
             this.swup.off('contentReplaced', this.onContentReplaced);
+            this.swup.off('clickLink', this.onClickLink);
 
             this.swup._handlers.scrollDone = null;
             this.swup._handlers.scrollStart = null;
@@ -322,6 +343,73 @@ var ScrollPlugin = function (_Plugin) {
                 return this.options.animateScroll;
             } else {
                 return this.options.animateScroll[type];
+            }
+        }
+    }, {
+        key: 'storeScrollPositions',
+
+
+        /**
+         * Stores the scroll positions for the current URL
+         * @param {string} url 
+         */
+        value: function storeScrollPositions(url) {
+            // create an object to store the scroll positions
+            var storeEntry = {
+                window: { top: window.scrollY, left: window.scrollX },
+                elements: []
+                // fill up the object with scroll positions for each matching element
+            };var $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+            $elements.forEach(function (el) {
+                return storeEntry.elements.push({
+                    top: el.scrollTop,
+                    left: el.scrollLeft
+                });
+            });
+            // put the object into the store
+            this.scrollPositionsStore[url] = storeEntry;
+        }
+
+        /**
+         * Deletes stored scroll positions for a given URL
+         * @param {string} url 
+         */
+
+    }, {
+        key: 'deleteStoredScrollPositions',
+        value: function deleteStoredScrollPositions(url) {
+            delete this.scrollPositionsStore[url];
+            this.scrollPositionsStore[url] = null;
+        }
+
+        /**
+         * Restore the scroll positions for all matching elements
+         * @returns void
+         */
+
+    }, {
+        key: 'restoreScrollPositions',
+        value: function restoreScrollPositions() {
+            var swup = this.swup;
+            // get the stored scroll positions from the cache
+            var scrollPositions = this.scrollPositionsStore[window.location.href];
+            if (scrollPositions == null) {
+                return;
+            }
+            if (scrollPositions.elements == null) {
+                return;
+            }
+            // cycle through all elements on the current page and restore their scroll positions, if appropriate
+            var $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+            $elements.forEach(function (el, index) {
+                var scrollPosition = scrollPositions.elements[index];
+                if (scrollPosition == null) return;
+                el.scrollTop = scrollPosition.top;
+                el.scrollLeft = scrollPosition.left;
+            });
+            // also restore the scroll position of the window, if animateHistoryBrowsing is true
+            if (swup.options.animateHistoryBrowsing) {
+                swup.scrollTo(scrollPositions.window.top, this.shouldAnimate('betweenPages'));
             }
         }
     }]);

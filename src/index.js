@@ -23,6 +23,9 @@ export default class ScrollPlugin extends Plugin {
             ...defaultOptions,
             ...options
         };
+
+        // This object will hold all scroll positions
+        this.scrollPositionsStore = {};
     }
 
     mount() {
@@ -68,6 +71,9 @@ export default class ScrollPlugin extends Plugin {
 
         // scroll to the referenced element when it's in the page (after render)
         swup.on('contentReplaced', this.onContentReplaced);
+
+        // store the current scroll positions
+        swup.on('clickLink', this.onClickLink);
     }
 
     unmount() {
@@ -80,6 +86,7 @@ export default class ScrollPlugin extends Plugin {
         this.swup.off('samePageWithHash', this.onSamePageWithHash);
         this.swup.off('transitionStart', this.onTransitionStart);
         this.swup.off('contentReplaced', this.onContentReplaced);
+        this.swup.off('clickLink', this.onClickLink);
 
         this.swup._handlers.scrollDone = null;
         this.swup._handlers.scrollStart = null;
@@ -146,6 +153,9 @@ export default class ScrollPlugin extends Plugin {
         if (!this.options.doScrollingRightAway || this.swup.scrollToElement) {
             this.doScrolling(popstate);
         }
+        if( popstate ) {
+            this.restoreScrollPositions()
+        }
     }
 
     doScrolling = popstate => {
@@ -166,4 +176,68 @@ export default class ScrollPlugin extends Plugin {
             }
         }
     };
+
+    onClickLink = (e) => {
+      // delete the scroll positions for the next page (navigation without popstate)
+      this.deleteStoredScrollPositions(e.delegateTarget.href);
+      // store the scroll positions for the current page
+      this.storeScrollPositions(window.location.href);
+    }
+
+    /**
+     * Stores the scroll positions for the current URL
+     * @param {string} url 
+     */
+    storeScrollPositions(url) {
+      // create an object to store the scroll positions
+      const storeEntry = {
+        window: {top: window.scrollY, left: window.scrollX},
+        elements: []
+      }
+      // fill up the object with scroll positions for each matching element
+      const $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+      $elements.forEach(el => storeEntry.elements.push({
+        top: el.scrollTop, 
+        left: el.scrollLeft
+      }));
+      // put the object into the store
+      this.scrollPositionsStore[url] = storeEntry;
+    }
+
+    /**
+     * Deletes stored scroll positions for a given URL
+     * @param {string} url 
+     */
+    deleteStoredScrollPositions(url) {
+      delete this.scrollPositionsStore[url];
+      this.scrollPositionsStore[url] = null;
+    }
+
+    /**
+     * Restore the scroll positions for all matching elements
+     * @returns void
+     */
+    restoreScrollPositions() {
+      const swup = this.swup;
+      // get the stored scroll positions from the cache
+      const scrollPositions = this.scrollPositionsStore[window.location.href];
+      if (scrollPositions == null) {
+        return;
+      }
+      if (scrollPositions.elements == null) {
+        return;
+      }
+      // cycle through all elements on the current page and restore their scroll positions, if appropriate
+      const $elements = document.querySelectorAll('[data-swup-restore-scroll]');
+      $elements.forEach((el, index) => {
+        const scrollPosition = scrollPositions.elements[index];
+        if (scrollPosition == null) return;
+        el.scrollTop = scrollPosition.top;
+        el.scrollLeft = scrollPosition.left;
+      });
+      // also restore the scroll position of the window, if animateHistoryBrowsing is true
+      if( swup.options.animateHistoryBrowsing ) {
+        swup.scrollTo(scrollPositions.window.top, this.shouldAnimate('betweenPages'));
+      }
+    }
 }
