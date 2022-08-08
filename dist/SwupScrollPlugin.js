@@ -207,6 +207,7 @@ var ScrollPlugin = function (_Plugin) {
             if (!_this.options.doScrollingRightAway || _this.swup.scrollToElement) {
                 _this.doScrolling(popstate);
             }
+
             if (popstate) {
                 _this.restoreScrollPositions();
             }
@@ -231,11 +232,13 @@ var ScrollPlugin = function (_Plugin) {
             }
         };
 
+        _this.onWillReplaceContent = function () {
+            _this.storeScrollPositions(_this.lastUrl);
+            _this.lastUrl = window.location.href;
+        };
+
         _this.onClickLink = function (e) {
-            // delete the scroll positions for the next page (navigation without popstate)
             _this.deleteStoredScrollPositions(e.delegateTarget.href);
-            // store the scroll positions for the current page
-            _this.storeScrollPositions(window.location.href);
         };
 
         var defaultOptions = {
@@ -255,6 +258,7 @@ var ScrollPlugin = function (_Plugin) {
 
         // This object will hold all scroll positions
         _this.scrollPositionsStore = {};
+        _this.lastUrl = window.location.href;
         return _this;
     }
 
@@ -314,25 +318,27 @@ var ScrollPlugin = function (_Plugin) {
             // scroll to the referenced element when it's in the page (after render)
             swup.on('contentReplaced', this.onContentReplaced);
 
-            // store the current scroll positions
+            swup.on('willReplaceContent', this.onWillReplaceContent);
             swup.on('clickLink', this.onClickLink);
         }
     }, {
         key: 'unmount',
         value: function unmount() {
-            this.swup.scrollTo = null;
+            var swup = this.swup;
+            swup.scrollTo = null;
 
             delete this.scrl;
             this.scrl = null;
 
-            this.swup.off('samePage', this.onSamePage);
-            this.swup.off('samePageWithHash', this.onSamePageWithHash);
-            this.swup.off('transitionStart', this.onTransitionStart);
-            this.swup.off('contentReplaced', this.onContentReplaced);
-            this.swup.off('clickLink', this.onClickLink);
+            swup.off('samePage', this.onSamePage);
+            swup.off('samePageWithHash', this.onSamePageWithHash);
+            swup.off('transitionStart', this.onTransitionStart);
+            swup.off('contentReplaced', this.onContentReplaced);
+            swup.off('willReplaceContent', this.onWillReplaceContent);
+            swup.off('clickLink', this.onClickLink);
 
-            this.swup._handlers.scrollDone = null;
-            this.swup._handlers.scrollStart = null;
+            swup._handlers.scrollDone = null;
+            swup._handlers.scrollStart = null;
 
             window.history.scrollRestoration = 'auto';
         }

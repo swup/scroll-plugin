@@ -26,6 +26,7 @@ export default class ScrollPlugin extends Plugin {
 
         // This object will hold all scroll positions
         this.scrollPositionsStore = {};
+        this.lastUrl = window.location.href;
     }
 
     mount() {
@@ -72,24 +73,26 @@ export default class ScrollPlugin extends Plugin {
         // scroll to the referenced element when it's in the page (after render)
         swup.on('contentReplaced', this.onContentReplaced);
 
-        // store the current scroll positions
+        swup.on('willReplaceContent', this.onWillReplaceContent);        
         swup.on('clickLink', this.onClickLink);
     }
 
     unmount() {
-        this.swup.scrollTo = null;
+        const swup = this.swup;
+        swup.scrollTo = null;
 
         delete this.scrl;
         this.scrl = null;
 
-        this.swup.off('samePage', this.onSamePage);
-        this.swup.off('samePageWithHash', this.onSamePageWithHash);
-        this.swup.off('transitionStart', this.onTransitionStart);
-        this.swup.off('contentReplaced', this.onContentReplaced);
-        this.swup.off('clickLink', this.onClickLink);
+        swup.off('samePage', this.onSamePage);
+        swup.off('samePageWithHash', this.onSamePageWithHash);
+        swup.off('transitionStart', this.onTransitionStart);
+        swup.off('contentReplaced', this.onContentReplaced);
+        swup.off('willReplaceContent', this.onWillReplaceContent);
+        swup.off('clickLink', this.onClickLink);
 
-        this.swup._handlers.scrollDone = null;
-        this.swup._handlers.scrollStart = null;
+        swup._handlers.scrollDone = null;
+        swup._handlers.scrollStart = null;
 
         window.history.scrollRestoration = 'auto';
     }
@@ -153,6 +156,7 @@ export default class ScrollPlugin extends Plugin {
         if (!this.options.doScrollingRightAway || this.swup.scrollToElement) {
             this.doScrolling(popstate);
         }
+        
         if( popstate ) {
             this.restoreScrollPositions()
         }
@@ -175,13 +179,15 @@ export default class ScrollPlugin extends Plugin {
                 swup.scrollTo(0, this.shouldAnimate('betweenPages'));
             }
         }
-    };
+    }
+
+    onWillReplaceContent = () => {
+        this.storeScrollPositions(this.lastUrl);
+        this.lastUrl = window.location.href;
+    }
 
     onClickLink = (e) => {
-      // delete the scroll positions for the next page (navigation without popstate)
-      this.deleteStoredScrollPositions(e.delegateTarget.href);
-      // store the scroll positions for the current page
-      this.storeScrollPositions(window.location.href);
+        this.deleteStoredScrollPositions(e.delegateTarget.href);
     }
 
     /**
