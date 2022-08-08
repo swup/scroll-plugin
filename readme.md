@@ -53,6 +53,11 @@ For finer control, you can pass an object:
 ```
 💡 We encourage you to respect user preferences when setting the `animateScroll` option:
 ```javascript
+// Using a simple boolean...
+{
+  animateScroll: !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+// ...or this little monster, with full control over everything:
 {
   animateScroll: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : {
     betweenPages: true,
