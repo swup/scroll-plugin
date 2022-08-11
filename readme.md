@@ -10,7 +10,7 @@ This plugin can be installed with npm
 npm install @swup/scroll-plugin
 ```
 
-and included with and import:
+and included with an import:
 
 ```shell
 import SwupScrollPlugin from '@swup/scroll-plugin';
