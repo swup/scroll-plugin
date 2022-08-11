@@ -1,5 +1,7 @@
 # Swup Scroll plugin
 
+Adds awesome "acceleration based" automatic scrolling into the process of transition. The scrolling behaviour is customizable using options (see below).
+
 ## Installation
 
 This plugin can be installed with npm
@@ -8,7 +10,7 @@ This plugin can be installed with npm
 npm install @swup/scroll-plugin
 ```
 
-and included with import
+and included with an import:
 
 ```shell
 import SwupScrollPlugin from '@swup/scroll-plugin';
