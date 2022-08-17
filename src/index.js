@@ -20,7 +20,7 @@ export default class ScrollPlugin extends Plugin {
 			getAnchorElement: null,
 			offset: 0,
 			scrollContainers: `[data-swup-scroll-container]`,
-			shouldResetScrollPosition: htmlAnchorElement => true
+			shouldResetScrollPosition: (htmlAnchorElement) => true
 		};
 
 		this.options = {
@@ -263,19 +263,20 @@ export default class ScrollPlugin extends Plugin {
 	/**
 	 * Stores the scroll positions for the current URL
 	 * @param {string} url
-     * @returns {void}
+	 * @returns {void}
 	 */
 	storeScrollPositions(url) {
-        
-        // retrieve the current scroll position for all containers
-        const containers = queryAll(this.options.scrollContainers)
-          .map((el) => ({ top: el.scrollTop, left: el.scrollLeft }));
+		// retrieve the current scroll position for all containers
+		const containers = queryAll(this.options.scrollContainers).map((el) => ({
+			top: el.scrollTop,
+			left: el.scrollLeft
+		}));
 
-        // construct the final object entry, with the window scroll positions added
-        this.scrollPositionsStore[url] = { 
-            window: { top: window.scrollY, left: window.scrollX },
-            containers
-        };
+		// construct the final object entry, with the window scroll positions added
+		this.scrollPositionsStore[url] = {
+			window: { top: window.scrollY, left: window.scrollX },
+			containers
+		};
 	}
 
 	/**
