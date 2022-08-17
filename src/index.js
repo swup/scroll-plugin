@@ -20,9 +20,7 @@ export default class ScrollPlugin extends Plugin {
 			getAnchorElement: null,
 			offset: 0,
 			scrollContainers: `[data-swup-scroll-container]`,
-			shouldRestoreScrollPosition: (htmlAnchorElement) => {
-				return false;
-			}
+			shouldResetScrollPosition: (htmlAnchorElement) => true
 		};
 
 		this.options = {
@@ -249,42 +247,43 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Deletes the scroll positions for the URL a link is pointing to,
-	 * if shouldRestoreScrollPosition doesn't evaluate to true
+	 * if shouldResetScrollPosition evaluates to true
 	 *
-	 * @param {event} e
+	 * @param {PointerEvent}
 	 * @returns {void}
 	 */
 	onClickLink = (e) => {
-		if (!this.options.shouldRestoreScrollPosition(e.delegateTarget)) {
+		if (!this.options.shouldResetScrollPosition(e.delegateTarget)) {
 			return;
 		}
 		const url = new Link(e.delegateTarget).getAddress();
-		this.deleteStoredScrollPositions(url);
+		this.resetScrollPositions(url);
 	};
 
 	/**
 	 * Stores the scroll positions for the current URL
 	 * @param {string} url
-     * @returns {void}
+	 * @returns {void}
 	 */
 	storeScrollPositions(url) {
-        
-        // retrieve the current scroll position for all containers
-        const containers = queryAll(this.options.scrollContainers)
-          .map((el) => ({ top: el.scrollTop, left: el.scrollLeft }));
+		// retrieve the current scroll position for all containers
+		const containers = queryAll(this.options.scrollContainers).map((el) => ({
+			top: el.scrollTop,
+			left: el.scrollLeft
+		}));
 
-        // construct the final object entry, with the window scroll positions added
-        this.scrollPositionsStore[url] = { 
-            window: { top: window.scrollY, left: window.scrollX },
-            containers
-        };
+		// construct the final object entry, with the window scroll positions added
+		this.scrollPositionsStore[url] = {
+			window: { top: window.scrollY, left: window.scrollX },
+			containers
+		};
 	}
 
 	/**
-	 * Deletes stored scroll positions for a given URL
+	 * Resets stored scroll positions for a given URL
 	 * @param {string} url
 	 */
-	deleteStoredScrollPositions(url) {
+	resetScrollPositions(url) {
 		delete this.scrollPositionsStore[url];
 		this.scrollPositionsStore[url] = null;
 	}
