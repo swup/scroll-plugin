@@ -71,7 +71,7 @@ For finer control, you can pass an object:
 
 ### scrollFriction and scrollAcceleration
 
-Animation of scroll is adjustable with options `scrollFriction` and `scrollAcceleration`.
+The animation behavior of the scroll animation can be adjusted by setting `scrollFriction` and `scrollAcceleration`.
 
 ### getAnchorElement
 
@@ -87,8 +87,7 @@ Customize how the scroll target is found on the page. Defaults to standard brows
 }
 ```
 
-
-### offset
+### Offset
 
 Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
 
@@ -110,16 +109,35 @@ Offset to substract from the final scroll position, to account for fixed headers
 ```javascript
 new SwupScrollPlugin({
     doScrollingRightAway: false,
-    animateScroll: true,
+    animateScroll: {
+        betweenPages: true,
+        samePageWithHash: true,
+        samePage: true,
+    },
     scrollFriction: 0.3,
     scrollAcceleration: 0.04,
+    getAnchorElement: null,
     offset: 0,
 });
 ```
 
-## Changes of swup instance
+## Changes of the swup instance
 
-Plugins ads `scrollTo` method to the swup instance, which can be later used for custom scrolling.
-Method accepts offset in pixels or element you want to scroll to.
+Scroll Plugin adds the method `scrollTo` to the swup instance, which can be used for custom scrolling.
+The method accepts an offset in pixels and a boolean, if the scroll position should be animated:
 
-Plugin also adds `scrollStart` and `scrollDone` events to swup, that can be listened to with `on` method.
+```js
+// will animate the scroll position of the window to 2000px
+swup.scrollTo(2000, true);
+```
+
+The Plugin also adds two new events `scrollStart` and `scrollDone` to swup, that can be listened to with the `on` method:
+
+```js
+swup.on('scrollStart', () => {
+  console.log('Swup started scrolling');
+});
+swup.on('scrollDone', () => {
+  console.log('Swup finished scrolling');
+});
+```
