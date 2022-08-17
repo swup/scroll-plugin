@@ -151,9 +151,7 @@ recorded for that page. See [Reset vs. restore](#reset-vs-restore) for an explan
 ```js
 {
   // Don't scroll back up for custom back-links, mimicking the browser back button
-  shouldResetScrollPosition: (htmlAnchorElement) => {
-    return !htmlAnchorElement.classList.contains('backlink');
-  }
+  shouldResetScrollPosition: (link) => !link.matches('.backlink')
 }
 ```
 
@@ -172,7 +170,7 @@ new SwupScrollPlugin({
   getAnchorElement: null,
   offset: 0,
   scrollContainers: `[data-swup-scroll-container]`,
-  shouldResetScrollPosition: htmlAnchorElement => false
+  shouldResetScrollPosition: htmlAnchorElement => true
 });
 ```
 
