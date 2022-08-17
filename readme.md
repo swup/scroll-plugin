@@ -32,6 +32,29 @@ const swup = new Swup({
 });
 ```
 
+## Behavior
+
+The plugin works out of the box for sites where the window is the main scroll container,
+scrolling back up on page visits and restoring the previous position on browser history visits.
+
+### Scroll containers
+
+If your site has other scroll containers than the window, like overflowing divs, the plugin will
+happily restore their scroll positions as long as you let it know about those containers. You can
+either add the attribute `[data-swup-scroll-container]` to them or use the
+[scrollContainers](#scrollcontainers) option to configure a custom selector.
+
+### Reset vs. restore
+
+On each page navigation, the plugin will **reset** the scroll position to the top just like the
+browser would. On backword/forward history visits, it will **restore** the previous scroll position
+that was saved right before leaving the page.
+
+You can customize when to reset vs. restore using the
+[shouldRestoreScrollPosition](#shouldrestorescrollposition) option. A common use case would be a
+custom back button: clicking it will reset the scoll position to the top while users would expect it
+to restore the previous scroll position on that page.
+
 ## Options
 
 ### doScrollingRightAway
@@ -53,7 +76,9 @@ For finer control, you can pass an object:
   }
 }
 ```
+
 💡 We encourage you to respect user preferences when setting the `animateScroll` option:
+
 ```javascript
 // Using a simple boolean...
 {
@@ -104,24 +129,31 @@ Offset to substract from the final scroll position, to account for fixed headers
 }
 ```
 
-### Scroll Containers
+### scrollContainers
 
-Scroll Plugin helps you with restoring the scroll positions of your overflowing divs (or any other element that has overflow) if you navigate back and forward through the browser history. Just add the attribute `[data-swup-scroll-container]` to the elements you want to be restored. The selector can be customized with the option `scrollContainers`, which accepts a selector string:
+Customize the selector string used for finding scroll containers other than the window. See the
+[Scroll Containers](#scroll-containers) section for an explanation of how the plugin deals with
+overflow containers.
 
 ```js
 {
-    scrollContainers: `.my-overflowing-div, .my-other-div`
+  // Always restore the scroll position of overflowing tables and sidebars
+  scrollContainers: '.overflowing-table, .overflowing-sidebar'
 }
 ```
 
-Every time you click a link, Scroll Plugin will wipe the stored scroll positions for the URL the link points towards. You can opt-in to preserving these scroll positions by using the callback `shouldRestoreScrollPosition`:
+### shouldRestoreScrollPosition
+
+Callback function that allows customizing the behavior when a link is clicked. Instead of scrolling
+back up on page visits, returning `true` here will instead restore the previous scroll position
+recorded for that page. See [Reset vs. restore](#reset-vs-restore) for an explanation and use cases.
 
 ```js
 {
-    // don't reset the scroll positions for links that conain the class "backlink"
-    shouldRestoreScrollPosition: (htmlAnchorElement) => {
-      return htmlAnchorElement.classList.contains('backlink');
-    }
+  // Don't scroll back up for custom back-links, mimicking the browser back button
+  shouldRestoreScrollPosition: (htmlAnchorElement) => {
+    return htmlAnchorElement.classList.contains('backlink');
+  }
 }
 ```
 
@@ -129,20 +161,18 @@ Every time you click a link, Scroll Plugin will wipe the stored scroll positions
 
 ```javascript
 new SwupScrollPlugin({
-    doScrollingRightAway: false,
-    animateScroll: {
-      betweenPages: true,
-      samePageWithHash: true,
-      samePage: true
-    },
-    scrollFriction: 0.3,
-    scrollAcceleration: 0.04,
-    getAnchorElement: null,
-    offset: 0,
-    scrollContainers: `[data-swup-scroll-container]`,
-    shouldRestoreScrollPosition: (htmlAnchorElement) => {
-      return false;
-    }
+  doScrollingRightAway: false,
+  animateScroll: {
+    betweenPages: true,
+    samePageWithHash: true,
+    samePage: true
+  },
+  scrollFriction: 0.3,
+  scrollAcceleration: 0.04,
+  getAnchorElement: null,
+  offset: 0,
+  scrollContainers: `[data-swup-scroll-container]`,
+  shouldRestoreScrollPosition: (htmlAnchorElement) => false
 });
 ```
 
