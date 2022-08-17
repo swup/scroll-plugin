@@ -329,7 +329,8 @@ var ScrollPlugin = function (_Plugin) {
 		};
 
 		_this.onClickLink = function (e) {
-			if (!_this.options.shouldRestoreScrollPosition(e.delegateTarget)) {
+			console.log(e);
+			if (!_this.options.shouldResetScrollPosition(e.delegateTarget)) {
 				return;
 			}
 			var url = new _helpers.Link(e.delegateTarget).getAddress();
@@ -348,8 +349,8 @@ var ScrollPlugin = function (_Plugin) {
 			getAnchorElement: null,
 			offset: 0,
 			scrollContainers: '[data-swup-scroll-container]',
-			shouldRestoreScrollPosition: function shouldRestoreScrollPosition(htmlAnchorElement) {
-				return false;
+			shouldResetScrollPosition: function shouldResetScrollPosition(htmlAnchorElement) {
+				return true;
 			}
 		};
 
@@ -539,9 +540,9 @@ var ScrollPlugin = function (_Plugin) {
 
 		/**
    * Deletes the scroll positions for the URL a link is pointing to,
-   * if shouldRestoreScrollPosition doesn't evaluate to true
+   * if shouldResetScrollPosition evaluates to true
    *
-   * @param {event} e
+   * @param {event}
    * @returns {void}
    */
 
