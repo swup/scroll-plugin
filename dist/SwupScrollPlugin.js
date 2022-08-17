@@ -329,12 +329,11 @@ var ScrollPlugin = function (_Plugin) {
 		};
 
 		_this.onClickLink = function (e) {
-			console.log(e);
 			if (!_this.options.shouldResetScrollPosition(e.delegateTarget)) {
 				return;
 			}
 			var url = new _helpers.Link(e.delegateTarget).getAddress();
-			_this.deleteStoredScrollPositions(url);
+			_this.resetScrollPositions(url);
 		};
 
 		var defaultOptions = {
@@ -542,7 +541,7 @@ var ScrollPlugin = function (_Plugin) {
    * Deletes the scroll positions for the URL a link is pointing to,
    * if shouldResetScrollPosition evaluates to true
    *
-   * @param {event}
+   * @param {PointerEvent}
    * @returns {void}
    */
 
@@ -553,13 +552,15 @@ var ScrollPlugin = function (_Plugin) {
 		/**
    * Stores the scroll positions for the current URL
    * @param {string} url
-      * @returns {void}
+   * @returns {void}
    */
 		value: function storeScrollPositions(url) {
-
 			// retrieve the current scroll position for all containers
 			var containers = (0, _utils.queryAll)(this.options.scrollContainers).map(function (el) {
-				return { top: el.scrollTop, left: el.scrollLeft };
+				return {
+					top: el.scrollTop,
+					left: el.scrollLeft
+				};
 			});
 
 			// construct the final object entry, with the window scroll positions added
@@ -570,13 +571,13 @@ var ScrollPlugin = function (_Plugin) {
 		}
 
 		/**
-   * Deletes stored scroll positions for a given URL
+   * Resets stored scroll positions for a given URL
    * @param {string} url
    */
 
 	}, {
-		key: 'deleteStoredScrollPositions',
-		value: function deleteStoredScrollPositions(url) {
+		key: 'resetScrollPositions',
+		value: function resetScrollPositions(url) {
 			delete this.scrollPositionsStore[url];
 			this.scrollPositionsStore[url] = null;
 		}
