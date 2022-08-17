@@ -1,6 +1,7 @@
 import Plugin from '@swup/plugin';
 import Scrl from 'scrl';
 import { getCurrentUrl, Link } from 'swup/lib/helpers';
+import { queryAll } from 'swup/lib/utils';
 
 export default class ScrollPlugin extends Plugin {
 	name = 'ScrollPlugin';
@@ -106,7 +107,7 @@ export default class ScrollPlugin extends Plugin {
 	 * Detects if a scroll should be animated, based on context
 	 *
 	 * @param {string} context
-	 * @returns
+	 * @returns {boolean}
 	 */
 	shouldAnimate(context) {
 		if (typeof this.options.animateScroll === 'boolean') {
@@ -118,7 +119,7 @@ export default class ScrollPlugin extends Plugin {
 	/**
 	 * Get an element based on anchor
 	 * @param {string} hash
-	 * @returns
+	 * @returns {mixed}
 	 */
 	getAnchorElement = (hash = '') => {
 		// Look for a custom function provided via the plugin options
@@ -136,8 +137,8 @@ export default class ScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 *
-	 * @param {?HtmlELement} element
-	 * @returns
+	 * @param {(HtmlELement|null)} element
+	 * @returns {number}
 	 */
 	getOffset = (element = null) => {
 		// If options.offset is a function, apply and return it
@@ -168,7 +169,7 @@ export default class ScrollPlugin extends Plugin {
 	 * Attempts to scroll to an anchor
 	 * @param {string} hash
 	 * @param {string} context
-	 * @returns
+	 * @returns {boolean}
 	 */
 	maybeScrollToAnchor(hash, context) {
 		// Bail early if the hash is null
@@ -215,8 +216,8 @@ export default class ScrollPlugin extends Plugin {
 	/**
 	 * Scrolls the window, based on context
 	 *
-	 * @param {PopStateEvent|boolean} popstate
-	 * @returns void
+	 * @param {(PopStateEvent|boolean)} popstate
+	 * @returns {void}
 	 */
 	doScrollingBetweenPages = (popstate) => {
 		const swup = this.swup;
@@ -233,7 +234,7 @@ export default class ScrollPlugin extends Plugin {
 		}
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
-		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl());
+		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl()) || {};
 		const top = (scrollPositions.window && scrollPositions.window.top) || 0;
 		swup.scrollTo(top, this.shouldAnimate('betweenPages'));
 	};
@@ -251,7 +252,7 @@ export default class ScrollPlugin extends Plugin {
 	 * if shouldRestoreScrollPosition doesn't evaluate to true
 	 *
 	 * @param {event} e
-	 * @returns void
+	 * @returns {void}
 	 */
 	onClickLink = (e) => {
 		if (!this.options.shouldRestoreScrollPosition(e.delegateTarget)) {
@@ -264,23 +265,19 @@ export default class ScrollPlugin extends Plugin {
 	/**
 	 * Stores the scroll positions for the current URL
 	 * @param {string} url
+     * @returns {void}
 	 */
 	storeScrollPositions(url) {
-		// create an object to store the scroll positions
-		const storeEntry = {
-			window: { top: window.scrollY, left: window.scrollX },
-			containers: []
-		};
-		// fill up the object with scroll positions for each matching element
-		const $containers = document.querySelectorAll(this.options.scrollContainers);
-		$containers.forEach((el) =>
-			storeEntry.containers.push({
-				top: el.scrollTop,
-				left: el.scrollLeft
-			})
-		);
-		// put the object into the store
-		this.scrollPositionsStore[url] = storeEntry;
+        
+        // retrieve the current scroll position for all containers
+        const containers = queryAll(this.options.scrollContainers)
+          .map((el) => ({ top: el.scrollTop, left: el.scrollLeft }));
+
+        // construct the final object entry, with the window scroll positions added
+        this.scrollPositionsStore[url] = { 
+            window: { top: window.scrollY, left: window.scrollX },
+            containers
+        };
 	}
 
 	/**
@@ -294,10 +291,10 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Get the stored scroll positions for a given URL from the cache
-	 * @returns {object}
+	 * @returns {(object|null)}
 	 */
 	getStoredScrollPositions(url) {
-		return this.scrollPositionsStore[url] || {};
+		return this.scrollPositionsStore[url];
 	}
 
 	/**
@@ -306,14 +303,13 @@ export default class ScrollPlugin extends Plugin {
 	 */
 	restoreScrollContainers(popstate) {
 		// get the stored scroll positions from the cache
-		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl());
+		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl()) || {};
 		if (scrollPositions.containers == null) {
 			return;
 		}
 
 		// cycle through all containers on the current page and restore their scroll positions, if appropriate
-		const $containers = document.querySelectorAll(this.options.scrollContainers);
-		$containers.forEach((el, index) => {
+		queryAll(this.options.scrollContainers).forEach((el, index) => {
 			const scrollPosition = scrollPositions.containers[index];
 			if (scrollPosition == null) return;
 			el.scrollTop = scrollPosition.top;
