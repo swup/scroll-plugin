@@ -104,20 +104,45 @@ Offset to substract from the final scroll position, to account for fixed headers
 }
 ```
 
+### Scroll Containers
+
+Scroll Plugin helps you with restoring the scroll positions of your overflowing divs (or any other element that has overflow) if you navigate back and forward through the browser history. Just add the attribute `[data-swup-scroll-container]` to the elements you want to be restored. The selector can be customized with the option `scrollContainers`, which accepts a selector string:
+
+```js
+{
+    scrollContainers: `.my-overflowing-div, .my-other-div`
+}
+```
+
+Every time you click a link, Scroll Plugin will wipe the stored scroll positions for the URL the link points towards. You can opt-in to preserving these scroll positions by using the callback `shouldRestoreScrollPosition`:
+
+```js
+{
+    // don't reset the scroll positions for links that conain the class "backlink"
+    shouldRestoreScrollPosition: (htmlAnchorElement) => {
+      return htmlAnchorElement.classList.contains('backlink');
+    }
+}
+```
+
 ### Default options
 
 ```javascript
 new SwupScrollPlugin({
     doScrollingRightAway: false,
     animateScroll: {
-        betweenPages: true,
-        samePageWithHash: true,
-        samePage: true,
+      betweenPages: true,
+      samePageWithHash: true,
+      samePage: true
     },
     scrollFriction: 0.3,
     scrollAcceleration: 0.04,
     getAnchorElement: null,
     offset: 0,
+    scrollContainers: `[data-swup-scroll-container]`,
+    shouldRestoreScrollPosition: (htmlAnchorElement) => {
+      return false;
+    }
 });
 ```
 
