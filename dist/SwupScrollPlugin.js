@@ -244,9 +244,17 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+/**
+ * Class representing a Scroll Plugin.
+ * @extends Plugin
+ */
 var ScrollPlugin = function (_Plugin) {
 	_inherits(ScrollPlugin, _Plugin);
 
+	/**
+  * Constructor
+  * @param {?object} options the plugin options
+  */
 	function ScrollPlugin(options) {
 		_classCallCheck(this, ScrollPlugin);
 
@@ -328,12 +336,8 @@ var ScrollPlugin = function (_Plugin) {
 			_this.previousUrl = (0, _helpers.getCurrentUrl)();
 		};
 
-		_this.onClickLink = function (e) {
-			if (!_this.options.shouldResetScrollPosition(e.delegateTarget)) {
-				return;
-			}
-			var url = new _helpers.Link(e.delegateTarget).getAddress();
-			_this.resetScrollPositions(url);
+		_this.onClickLink = function (event) {
+			_this.maybeResetScrollPositions(event.delegateTarget);
 		};
 
 		var defaultOptions = {
@@ -362,16 +366,23 @@ var ScrollPlugin = function (_Plugin) {
 		return _this;
 	}
 
+	/**
+  * Runs if the plugin is mounted
+  */
+
+
 	_createClass(ScrollPlugin, [{
 		key: 'mount',
 		value: function mount() {
 			var _this2 = this;
 
 			var swup = this.swup;
+
 			// add empty handlers array for scroll events
 			swup._handlers.scrollDone = [];
 			swup._handlers.scrollStart = [];
 
+			// Initialize Scrl for smooth animations
 			this.scrl = new _scrl2.default({
 				onStart: function onStart() {
 					return swup.triggerEvent('scrollStart');
@@ -400,7 +411,9 @@ var ScrollPlugin = function (_Plugin) {
 			};
 
 			// disable browser scroll control on popstates when
-			// animateHistoryBrowsing option is enabled in swup
+			// animateHistoryBrowsing option is enabled in swup.
+			// Cache the previous setting to be able to properly restore it on unmount
+			this.previousScrollRestoration = window.history.scrollRestoration;
 			if (swup.options.animateHistoryBrowsing) {
 				window.history.scrollRestoration = 'manual';
 			}
@@ -420,6 +433,11 @@ var ScrollPlugin = function (_Plugin) {
 			swup.on('willReplaceContent', this.onWillReplaceContent);
 			swup.on('clickLink', this.onClickLink);
 		}
+
+		/**
+   * Runs when the plugin is unmounted
+   */
+
 	}, {
 		key: 'unmount',
 		value: function unmount() {
@@ -439,12 +457,11 @@ var ScrollPlugin = function (_Plugin) {
 			swup._handlers.scrollDone = null;
 			swup._handlers.scrollStart = null;
 
-			window.history.scrollRestoration = 'auto';
+			window.history.scrollRestoration = this.previousScrollRestoration;
 		}
 
 		/**
    * Detects if a scroll should be animated, based on context
-   *
    * @param {string} context
    * @returns {boolean}
    */
@@ -467,7 +484,6 @@ var ScrollPlugin = function (_Plugin) {
 
 		/**
    * Get the offset for a scroll
-   *
    * @param {(HtmlELement|null)} element
    * @returns {number}
    */
@@ -526,7 +542,6 @@ var ScrollPlugin = function (_Plugin) {
 
 		/**
    * Scrolls the window, based on context
-   *
    * @param {(PopStateEvent|boolean)} popstate
    * @returns {void}
    */
@@ -538,22 +553,37 @@ var ScrollPlugin = function (_Plugin) {
 
 
 		/**
-   * Deletes the scroll positions for the URL a link is pointing to,
-   * if shouldResetScrollPosition evaluates to true
-   *
+   * Handles `clickLink`
    * @param {PointerEvent}
    * @returns {void}
    */
 
 	}, {
-		key: 'storeScrollPositions',
+		key: 'maybeResetScrollPositions',
 
+
+		/**
+   * Deletes the scroll positions for the URL a link is pointing to,
+   * if shouldResetScrollPosition evaluates to true
+   * @param {HTMLAnchorElement} htmlAnchorElement
+   * @returns {void}
+   */
+		value: function maybeResetScrollPositions(htmlAnchorElement) {
+			if (!this.options.shouldResetScrollPosition(htmlAnchorElement)) {
+				return;
+			}
+			var url = new _helpers.Link(htmlAnchorElement).getAddress();
+			this.resetScrollPositions(url);
+		}
 
 		/**
    * Stores the scroll positions for the current URL
    * @param {string} url
    * @returns {void}
    */
+
+	}, {
+		key: 'storeScrollPositions',
 		value: function storeScrollPositions(url) {
 			// retrieve the current scroll position for all containers
 			var containers = (0, _utils.queryAll)(this.options.scrollContainers).map(function (el) {
@@ -652,9 +682,19 @@ var Plugin = function () {
         }
     }, {
         key: "unmount",
-        value: function unmount() {}
-        // this is unmount method rewritten by class extending
-        // and is executed when swup with plugin is disabled
+        value: function unmount() {
+            // this is unmount method rewritten by class extending
+            // and is executed when swup with plugin is disabled
+        }
+    }, {
+        key: "_beforeMount",
+        value: function _beforeMount() {
+            // here for any future hidden auto init
+        }
+    }, {
+        key: "_afterUnmount",
+        value: function _afterUnmount() {}
+        // here for any future hidden auto-cleanup
 
 
         // this is here so we can tell if plugin was created by extending this class
