@@ -4,16 +4,16 @@ import { getCurrentUrl, Link } from 'swup/lib/helpers';
 import { queryAll } from 'swup/lib/utils';
 
 /**
-* Class representing a Scroll Plugin.
-* @extends Plugin
-*/
+ * Class representing a Scroll Plugin.
+ * @extends Plugin
+ */
 export default class ScrollPlugin extends Plugin {
 	name = 'ScrollPlugin';
 
-    /**
-     * Constructor
-     * @param {?object} options the plugin options 
-     */
+	/**
+	 * Constructor
+	 * @param {?object} options the plugin options
+	 */
 	constructor(options) {
 		super();
 		const defaultOptions = {
@@ -42,17 +42,17 @@ export default class ScrollPlugin extends Plugin {
 		this.previousUrl = getCurrentUrl();
 	}
 
-    /**
-     * Runs if the plugin is mounted
-     */
+	/**
+	 * Runs if the plugin is mounted
+	 */
 	mount() {
 		const swup = this.swup;
-		
-        // add empty handlers array for scroll events
+
+		// add empty handlers array for scroll events
 		swup._handlers.scrollDone = [];
 		swup._handlers.scrollStart = [];
 
-        // Initialize Scrl for smooth animations
+		// Initialize Scrl for smooth animations
 		this.scrl = new Scrl({
 			onStart: () => swup.triggerEvent('scrollStart'),
 			onEnd: () => swup.triggerEvent('scrollDone'),
@@ -74,8 +74,8 @@ export default class ScrollPlugin extends Plugin {
 
 		// disable browser scroll control on popstates when
 		// animateHistoryBrowsing option is enabled in swup.
-        // Cache the previous setting to be able to properly restore it on unmount
-        this.previousScrollRestoration = window.history.scrollRestoration;
+		// Cache the previous setting to be able to properly restore it on unmount
+		this.previousScrollRestoration = window.history.scrollRestoration;
 		if (swup.options.animateHistoryBrowsing) {
 			window.history.scrollRestoration = 'manual';
 		}
@@ -96,9 +96,9 @@ export default class ScrollPlugin extends Plugin {
 		swup.on('clickLink', this.onClickLink);
 	}
 
-    /**
-    * Runs when the plugin is unmounted
-    */
+	/**
+	 * Runs when the plugin is unmounted
+	 */
 	unmount() {
 		const swup = this.swup;
 		swup.scrollTo = null;

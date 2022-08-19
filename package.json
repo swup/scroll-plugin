@@ -4,6 +4,7 @@
   "description": "Swup scroll plugin.",
   "main": "lib/index.js",
   "scripts": {
+    "lint": "prettier src/**/*.{js,mjs} --write",
     "compile": "babel --presets es2015,stage-0 -d lib/ src/",
     "build": "webpack-cli",
     "prepublish": "npm run compile && npm run build"
@@ -34,5 +35,6 @@
     "@swup/plugin": "^1.0.0",
     "scrl": "^1.0.0",
     "swup": "^2.0.18"
-  }
+  },
+  "prettier": "@swup/prettier-config"
 }
