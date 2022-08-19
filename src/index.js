@@ -3,9 +3,17 @@ import Scrl from 'scrl';
 import { getCurrentUrl, Link } from 'swup/lib/helpers';
 import { queryAll } from 'swup/lib/utils';
 
+/**
+* Class representing a Scroll Plugin.
+* @extends Plugin
+*/
 export default class ScrollPlugin extends Plugin {
 	name = 'ScrollPlugin';
 
+    /**
+     * Constructor
+     * @param {?object} options the plugin options 
+     */
 	constructor(options) {
 		super();
 		const defaultOptions = {
@@ -34,12 +42,17 @@ export default class ScrollPlugin extends Plugin {
 		this.previousUrl = getCurrentUrl();
 	}
 
+    /**
+     * Runs if the plugin is mounted
+     */
 	mount() {
 		const swup = this.swup;
-		// add empty handlers array for scroll events
+		
+        // add empty handlers array for scroll events
 		swup._handlers.scrollDone = [];
 		swup._handlers.scrollStart = [];
 
+        // Initialize Scrl for smooth animations
 		this.scrl = new Scrl({
 			onStart: () => swup.triggerEvent('scrollStart'),
 			onEnd: () => swup.triggerEvent('scrollDone'),
@@ -60,7 +73,9 @@ export default class ScrollPlugin extends Plugin {
 		};
 
 		// disable browser scroll control on popstates when
-		// animateHistoryBrowsing option is enabled in swup
+		// animateHistoryBrowsing option is enabled in swup.
+        // Cache the previous setting to be able to properly restore it on unmount
+        this.previousScrollRestoration = window.history.scrollRestoration;
 		if (swup.options.animateHistoryBrowsing) {
 			window.history.scrollRestoration = 'manual';
 		}
@@ -81,6 +96,9 @@ export default class ScrollPlugin extends Plugin {
 		swup.on('clickLink', this.onClickLink);
 	}
 
+    /**
+    * Runs when the plugin is unmounted
+    */
 	unmount() {
 		const swup = this.swup;
 		swup.scrollTo = null;
@@ -98,12 +116,11 @@ export default class ScrollPlugin extends Plugin {
 		swup._handlers.scrollDone = null;
 		swup._handlers.scrollStart = null;
 
-		window.history.scrollRestoration = 'auto';
+		window.history.scrollRestoration = this.previousScrollRestoration;
 	}
 
 	/**
 	 * Detects if a scroll should be animated, based on context
-	 *
 	 * @param {string} context
 	 * @returns {boolean}
 	 */
@@ -134,7 +151,6 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Get the offset for a scroll
-	 *
 	 * @param {(HtmlELement|null)} element
 	 * @returns {number}
 	 */
@@ -213,7 +229,6 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Scrolls the window, based on context
-	 *
 	 * @param {(PopStateEvent|boolean)} popstate
 	 * @returns {void}
 	 */
@@ -246,19 +261,27 @@ export default class ScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Deletes the scroll positions for the URL a link is pointing to,
-	 * if shouldResetScrollPosition evaluates to true
-	 *
+	 * Handles `clickLink`
 	 * @param {PointerEvent}
 	 * @returns {void}
 	 */
-	onClickLink = (e) => {
-		if (!this.options.shouldResetScrollPosition(e.delegateTarget)) {
+	onClickLink = (event) => {
+		this.maybeResetScrollPositions(event.delegateTarget);
+	};
+
+	/**
+	 * Deletes the scroll positions for the URL a link is pointing to,
+	 * if shouldResetScrollPosition evaluates to true
+	 * @param {HTMLAnchorElement} htmlAnchorElement
+	 * @returns {void}
+	 */
+	maybeResetScrollPositions(htmlAnchorElement) {
+		if (!this.options.shouldResetScrollPosition(htmlAnchorElement)) {
 			return;
 		}
-		const url = new Link(e.delegateTarget).getAddress();
+		const url = new Link(htmlAnchorElement).getAddress();
 		this.resetScrollPositions(url);
-	};
+	}
 
 	/**
 	 * Stores the scroll positions for the current URL
