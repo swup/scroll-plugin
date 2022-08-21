@@ -3,9 +3,11 @@
   "version": "1.3.0",
   "description": "Swup scroll plugin.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "lint": "prettier src/**/*.{js,mjs} --write",
-    "compile": "babel --presets es2015,stage-0 -d lib/ src/",
+    "types:generate": "npx tsc --allowJs -d --emitDeclarationOnly src/index.js",
+    "compile": "babel --presets es2015,stage-0 -d lib/ src/ && npm run types",
     "build": "webpack-cli",
     "prepublish": "npm run compile && npm run build"
   },
@@ -28,6 +30,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "lodash": "^4.17.11",
     "prettier": "1.17.0",
+    "typescript": "^4.7.4",
     "webpack": "^4.20.2",
     "webpack-cli": "^3.1.1"
   },
