@@ -4,18 +4,35 @@ import { getCurrentUrl, Link } from 'swup/lib/helpers';
 import { queryAll } from 'swup/lib/utils';
 
 /**
- * Class representing a Scroll Plugin.
+ * Class representing the Swup Scroll Plugin.
  * @extends Plugin
  */
 export default class ScrollPlugin extends Plugin {
 	name = 'ScrollPlugin';
+	options = {};
+
+	/**
+	 * @typedef {object} animateScrollObject
+	 * @property {boolean} [animateScrollObject.betweenPages]
+	 * @property {boolean} [animateScrollObject.samePageWithHash]
+	 * @property {boolean} [animateScrollObject.samePage]
+	 */
 
 	/**
 	 * Constructor
-	 * @param {?object} options the plugin options
+	 * @param {object} options
+	 * @param {boolean} [options.doScrollingRightAway]
+	 * @param {boolean|animateScrollObject} [options.animateScroll]
+	 * @param {number} [options.scrollFriction]
+	 * @param {number} [options.scrollAcceleration]
+	 * @param {?function} [options.getAnchorElement]
+	 * @param {number} [options.offset]
+	 * @param {string} [options.scrollContainers]
+	 * @param {function} [options.shouldResetScrollPosition]
 	 */
-	constructor(options) {
+	constructor(options = null) {
 		super();
+
 		const defaultOptions = {
 			doScrollingRightAway: false,
 			animateScroll: {
@@ -28,7 +45,7 @@ export default class ScrollPlugin extends Plugin {
 			getAnchorElement: null,
 			offset: 0,
 			scrollContainers: `[data-swup-scroll-container]`,
-			shouldResetScrollPosition: (htmlAnchorElement) => true
+			shouldResetScrollPosition: (link) => true
 		};
 
 		this.options = {
@@ -38,8 +55,8 @@ export default class ScrollPlugin extends Plugin {
 
 		// This object will hold all scroll positions
 		this.scrollPositionsStore = {};
-		// this URL helps with storing the current scroll positions on `willReplaceContent`
-		this.previousUrl = getCurrentUrl();
+		// This URL helps with storing the current scroll positions on `willReplaceContent`
+		this.previousUrl = String(getCurrentUrl());
 	}
 
 	/**
@@ -75,7 +92,7 @@ export default class ScrollPlugin extends Plugin {
 		// disable browser scroll control on popstates when
 		// animateHistoryBrowsing option is enabled in swup.
 		// Cache the previous setting to be able to properly restore it on unmount
-		this.previousScrollRestoration = window.history.scrollRestoration;
+		this.previousScrollRestoration = String(window.history.scrollRestoration);
 		if (swup.options.animateHistoryBrowsing) {
 			window.history.scrollRestoration = 'manual';
 		}
@@ -121,6 +138,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Detects if a scroll should be animated, based on context
+	 * @private
 	 * @param {string} context
 	 * @returns {boolean}
 	 */
@@ -128,30 +146,30 @@ export default class ScrollPlugin extends Plugin {
 		if (typeof this.options.animateScroll === 'boolean') {
 			return this.options.animateScroll;
 		}
-		return this.options.animateScroll[context];
+		return Boolean(this.options.animateScroll[context]);
 	}
 
 	/**
 	 * Get an element based on anchor
-	 * @param {string} hash
-	 * @returns {mixed}
+	 * @param {string} selector
+	 * @returns {*}
 	 */
-	getAnchorElement = (hash = '') => {
+	getAnchorElement = (selector = '') => {
 		// Look for a custom function provided via the plugin options
 		if (typeof this.options.getAnchorElement === 'function') {
-			return this.options.getAnchorElement(hash);
+			return this.options.getAnchorElement(selector);
 		}
 		// Look for a the built-in function in swup, added in swup 2.0.16
 		if (typeof this.swup.getAnchorElement === 'function') {
-			return this.swup.getAnchorElement(hash);
+			return this.swup.getAnchorElement(selector);
 		}
 		// Finally, return a native browser query
-		return document.querySelector(hash);
+		return document.querySelector(selector);
 	};
 
 	/**
 	 * Get the offset for a scroll
-	 * @param {(HtmlELement|null)} element
+	 * @param {?HTMLElement} element
 	 * @returns {number}
 	 */
 	getOffset = (element = null) => {
@@ -165,6 +183,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Handles `samePage`
+	 * @private
 	 */
 	onSamePage = () => {
 		this.swup.scrollTo(0, this.shouldAnimate('samePage'));
@@ -172,6 +191,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Handles `onSamePageWithHash`
+	 * @private
 	 * @param {PointerEvent} event
 	 */
 	onSamePageWithHash = (event) => {
@@ -181,22 +201,22 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Attempts to scroll to an anchor
-	 * @param {string} hash
+	 * @param {string} selector A selector string
 	 * @param {string} context
 	 * @returns {boolean}
 	 */
-	maybeScrollToAnchor(hash, context) {
+	maybeScrollToAnchor(selector, context) {
 		// Bail early if the hash is null
-		if (hash == null) {
+		if (selector == null) {
 			return false;
 		}
-		const element = this.getAnchorElement(hash);
+		const element = this.getAnchorElement(selector);
 		if (!element) {
-			console.warn(`Element ${hash} not found`);
+			console.warn(`Element ${selector} not found`);
 			return false;
 		}
 		if (!(element instanceof Element)) {
-			console.warn(`Element ${hash} is not a DOM node`);
+			console.warn(`Element ${selector} is not a DOM node`);
 			return false;
 		}
 		const top =
@@ -207,6 +227,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Handles `transitionStart`
+	 * @private
 	 * @param {PopStateEvent} popstate
 	 */
 	onTransitionStart = (popstate) => {
@@ -217,6 +238,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Handles `contentReplaced`
+	 * @private
 	 * @param {PopStateEvent} popstate
 	 */
 	onContentReplaced = (popstate) => {
@@ -229,6 +251,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Scrolls the window, based on context
+	 * @private
 	 * @param {(PopStateEvent|boolean)} popstate
 	 * @returns {void}
 	 */
@@ -254,6 +277,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Stores the current scroll positions for the URL we just came from
+	 * @private
 	 */
 	onWillReplaceContent = () => {
 		this.storeScrollPositions(this.previousUrl);
@@ -262,7 +286,8 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Handles `clickLink`
-	 * @param {PointerEvent}
+	 * @private
+	 * @param {PointerEvent} event
 	 * @returns {void}
 	 */
 	onClickLink = (event) => {
@@ -272,6 +297,7 @@ export default class ScrollPlugin extends Plugin {
 	/**
 	 * Deletes the scroll positions for the URL a link is pointing to,
 	 * if shouldResetScrollPosition evaluates to true
+	 * @private
 	 * @param {HTMLAnchorElement} htmlAnchorElement
 	 * @returns {void}
 	 */
@@ -285,7 +311,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Stores the scroll positions for the current URL
-	 * @param {string} url
+	 * @param {string} url The URL you want to store the scroll positions for
 	 * @returns {void}
 	 */
 	storeScrollPositions(url) {
@@ -304,7 +330,7 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Resets stored scroll positions for a given URL
-	 * @param {string} url
+	 * @param {string} url The URL you want to reset the scroll positions for
 	 */
 	resetScrollPositions(url) {
 		delete this.scrollPositionsStore[url];
@@ -313,14 +339,16 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Get the stored scroll positions for a given URL from the cache
-	 * @returns {(object|null)}
+	 * @param {string} url The URL you want to get the scroll positions for
+	 * @returns {?object}
 	 */
 	getStoredScrollPositions(url) {
 		return this.scrollPositionsStore[url];
 	}
 
 	/**
-	 * Restore the scroll positions for all matching scrollContainers
+	 * Restore the scroll positions for all matching scrollContainers, for the current URL
+	 * @param {(PopStateEvent|boolean)} popstate
 	 * @returns void
 	 */
 	restoreScrollContainers(popstate) {
