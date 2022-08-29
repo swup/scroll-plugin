@@ -328,7 +328,10 @@ var ScrollPlugin = function (_Plugin) {
 			// Finally, scroll to either the stored scroll position or to the very top of the page
 			var scrollPositions = _this.getStoredScrollPositions((0, _helpers.getCurrentUrl)()) || {};
 			var top = scrollPositions.window && scrollPositions.window.top || 0;
-			swup.scrollTo(top, _this.shouldAnimate('betweenPages'));
+			// Give possible JavaScript time to execute before scrolling
+			requestAnimationFrame(function () {
+				return swup.scrollTo(top, _this.shouldAnimate('betweenPages'));
+			});
 		};
 
 		_this.onWillReplaceContent = function () {
