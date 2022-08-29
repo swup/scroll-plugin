@@ -249,7 +249,8 @@ export default class ScrollPlugin extends Plugin {
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl()) || {};
 		const top = (scrollPositions.window && scrollPositions.window.top) || 0;
-		swup.scrollTo(top, this.shouldAnimate('betweenPages'));
+		// Give possible JavaScript time to execute before scrolling
+		requestAnimationFrame(() => swup.scrollTo(top, this.shouldAnimate('betweenPages')));
 	};
 
 	/**
