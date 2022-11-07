@@ -326,7 +326,7 @@ var ScrollPlugin = function (_Plugin) {
 			}
 
 			// Finally, scroll to either the stored scroll position or to the very top of the page
-			var scrollPositions = _this.getStoredScrollPositions((0, _helpers.getCurrentUrl)()) || {};
+			var scrollPositions = _this.getStoredScrollPositions(_this.getCurrentCacheKey()) || {};
 			var top = scrollPositions.window && scrollPositions.window.top || 0;
 			// Give possible JavaScript time to execute before scrolling
 			requestAnimationFrame(function () {
@@ -335,8 +335,8 @@ var ScrollPlugin = function (_Plugin) {
 		};
 
 		_this.onWillReplaceContent = function () {
-			_this.storeScrollPositions(_this.previousUrl);
-			_this.previousUrl = (0, _helpers.getCurrentUrl)();
+			_this.storeScrollPositions(_this.currentCacheKey);
+			_this.currentCacheKey = _this.getCurrentCacheKey();
 		};
 
 		_this.onClickLink = function (event) {
@@ -362,10 +362,6 @@ var ScrollPlugin = function (_Plugin) {
 
 		_this.options = _extends({}, defaultOptions, options);
 
-		// This object will hold all scroll positions
-		_this.scrollPositionsStore = {};
-		// this URL helps with storing the current scroll positions on `willReplaceContent`
-		_this.previousUrl = (0, _helpers.getCurrentUrl)();
 		return _this;
 	}
 
@@ -412,6 +408,11 @@ var ScrollPlugin = function (_Plugin) {
 					swup.triggerEvent('scrollDone');
 				}
 			};
+
+			// This object will hold all scroll positions
+			this.scrollPositionsStore = {};
+			// this URL helps with storing the current scroll positions on `willReplaceContent`
+			this.currentCacheKey = this.getCurrentCacheKey();
 
 			// disable browser scroll control on popstates when
 			// animateHistoryBrowsing option is enabled in swup.
@@ -635,7 +636,7 @@ var ScrollPlugin = function (_Plugin) {
 		key: 'restoreScrollContainers',
 		value: function restoreScrollContainers(popstate) {
 			// get the stored scroll positions from the cache
-			var scrollPositions = this.getStoredScrollPositions((0, _helpers.getCurrentUrl)()) || {};
+			var scrollPositions = this.getStoredScrollPositions(this.getCurrentCacheKey()) || {};
 			if (scrollPositions.containers == null) {
 				return;
 			}
@@ -647,6 +648,22 @@ var ScrollPlugin = function (_Plugin) {
 				el.scrollTop = scrollPosition.top;
 				el.scrollLeft = scrollPosition.left;
 			});
+		}
+		/**
+   * Get the current cache key for the scroll positions.
+   * uses `getCurrentUrl` and applies `swup.resolvePath` if present
+   *
+   * @returns {string}
+   */
+
+	}, {
+		key: 'getCurrentCacheKey',
+		value: function getCurrentCacheKey() {
+			var path = (0, _helpers.getCurrentUrl)();
+			if (typeof this.swup.resolvePath === 'function') {
+				return this.swup.resolvePath(path);
+			}
+			return path;
 		}
 	}]);
 
