@@ -35,7 +35,6 @@ export default class ScrollPlugin extends Plugin {
 			...defaultOptions,
 			...options
 		};
-
 	}
 
 	/**
