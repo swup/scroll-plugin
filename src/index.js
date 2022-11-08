@@ -343,6 +343,8 @@ export default class ScrollPlugin extends Plugin {
 	 * Get the current cache key for the scroll positions.
 	 * uses `getCurrentUrl` and applies `swup.resolvePath` if present
 	 *
+	 * `swup.resolvePath` will become available in Swup 3
+	 *
 	 * @returns {string}
 	 */
 	getCurrentCacheKey() {
