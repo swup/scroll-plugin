@@ -35,11 +35,6 @@ export default class ScrollPlugin extends Plugin {
 			...defaultOptions,
 			...options
 		};
-
-		// This object will hold all scroll positions
-		this.scrollPositionsStore = {};
-		// this URL helps with storing the current scroll positions on `willReplaceContent`
-		this.previousUrl = getCurrentUrl();
 	}
 
 	/**
@@ -71,6 +66,11 @@ export default class ScrollPlugin extends Plugin {
 				swup.triggerEvent('scrollDone');
 			}
 		};
+
+		// This object will hold all scroll positions
+		this.scrollPositionsStore = {};
+		// this URL helps with storing the current scroll positions on `willReplaceContent`
+		this.currentCacheKey = this.getCurrentCacheKey();
 
 		// disable browser scroll control on popstates when
 		// animateHistoryBrowsing option is enabled in swup.
@@ -247,7 +247,7 @@ export default class ScrollPlugin extends Plugin {
 		}
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
-		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl()) || {};
+		const scrollPositions = this.getStoredScrollPositions(this.getCurrentCacheKey()) || {};
 		const top = (scrollPositions.window && scrollPositions.window.top) || 0;
 		// Give possible JavaScript time to execute before scrolling
 		requestAnimationFrame(() => swup.scrollTo(top, this.shouldAnimate('betweenPages')));
@@ -257,8 +257,8 @@ export default class ScrollPlugin extends Plugin {
 	 * Stores the current scroll positions for the URL we just came from
 	 */
 	onWillReplaceContent = () => {
-		this.storeScrollPositions(this.previousUrl);
-		this.previousUrl = getCurrentUrl();
+		this.storeScrollPositions(this.currentCacheKey);
+		this.currentCacheKey = this.getCurrentCacheKey();
 	};
 
 	/**
@@ -326,7 +326,7 @@ export default class ScrollPlugin extends Plugin {
 	 */
 	restoreScrollContainers(popstate) {
 		// get the stored scroll positions from the cache
-		const scrollPositions = this.getStoredScrollPositions(getCurrentUrl()) || {};
+		const scrollPositions = this.getStoredScrollPositions(this.getCurrentCacheKey()) || {};
 		if (scrollPositions.containers == null) {
 			return;
 		}
@@ -338,5 +338,20 @@ export default class ScrollPlugin extends Plugin {
 			el.scrollTop = scrollPosition.top;
 			el.scrollLeft = scrollPosition.left;
 		});
+	}
+	/**
+	 * Get the current cache key for the scroll positions.
+	 * uses `getCurrentUrl` and applies `swup.resolvePath` if present
+	 *
+	 * `swup.resolvePath` will become available in Swup 3
+	 *
+	 * @returns {string}
+	 */
+	getCurrentCacheKey() {
+		const path = getCurrentUrl();
+		if (typeof this.swup.resolvePath === 'function') {
+			return this.swup.resolvePath(path);
+		}
+		return path;
 	}
 }
