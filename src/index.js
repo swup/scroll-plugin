@@ -341,16 +341,16 @@ export default class ScrollPlugin extends Plugin {
 	}
 	/**
 	 * Get the current cache key for the scroll positions.
-	 * uses `getCurrentUrl` and applies `swup.resolvePath` if present
+	 * uses `getCurrentUrl` and applies `swup.resolveUrl` if present
 	 *
-	 * `swup.resolvePath` will become available in Swup 3
+	 * `swup.resolveUrl` will become available in Swup 3
 	 *
 	 * @returns {string}
 	 */
 	getCurrentCacheKey() {
 		const path = getCurrentUrl();
-		if (typeof this.swup.resolvePath === 'function') {
-			return this.swup.resolvePath(path);
+		if (typeof this.swup.resolveUrl === 'function') {
+			return this.swup.resolveUrl(path);
 		}
 		return path;
 	}
