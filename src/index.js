@@ -1,7 +1,6 @@
 import Plugin from '@swup/plugin';
 import Scrl from 'scrl';
-import { getCurrentUrl, Link } from 'swup/lib/helpers';
-import { queryAll } from 'swup/lib/utils';
+import { getCurrentUrl, Location, queryAll } from 'swup';
 
 /**
  * Class representing a Scroll Plugin.
@@ -280,7 +279,7 @@ export default class ScrollPlugin extends Plugin {
 		if (!this.options.shouldResetScrollPosition(htmlAnchorElement)) {
 			return;
 		}
-		const url = new Link(htmlAnchorElement).getAddress();
+		const { url } = Location.fromElement(htmlAnchorElement);
 		this.resetScrollPositions(url);
 	}
 
