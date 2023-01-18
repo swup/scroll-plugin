@@ -1,7 +1,6 @@
 import Plugin from '@swup/plugin';
 import { getCurrentUrl, Location, queryAll } from 'swup';
-// import Scrl from 'scrl';
-import Scrl from './scrl.js';
+import Scrl from 'scrl';
 
 /**
  * Class representing a Scroll Plugin.
