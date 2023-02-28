@@ -307,8 +307,9 @@ export default class ScrollPlugin extends Plugin {
 	 * @param {string} url
 	 */
 	resetScrollPositions(url) {
-		delete this.scrollPositionsStore[url];
-		this.scrollPositionsStore[url] = null;
+		const cacheKey = this.getResolvedUrl(url);
+		delete this.scrollPositionsStore[cacheKey];
+		this.scrollPositionsStore[cacheKey] = null;
 	}
 
 	/**
@@ -340,17 +341,20 @@ export default class ScrollPlugin extends Plugin {
 	}
 	/**
 	 * Get the current cache key for the scroll positions.
-	 * uses `getCurrentUrl` and applies `swup.resolveUrl` if present
-	 *
-	 * `swup.resolveUrl` will become available in Swup 3
-	 *
 	 * @returns {string}
 	 */
 	getCurrentCacheKey() {
-		const path = getCurrentUrl();
+		return this.getResolvedUrl(getCurrentUrl());
+	}
+	/**
+	* Apply `swup.resolveUrl` to a given URL
+	*
+	* @returns {string}
+	*/
+	getResolvedUrl(url) {
 		if (typeof this.swup.resolveUrl === 'function') {
-			return this.swup.resolveUrl(path);
+			return this.swup.resolveUrl(url);
 		}
-		return path;
+		return url;
 	}
 }
