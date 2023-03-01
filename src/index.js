@@ -314,10 +314,11 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Get the stored scroll positions for a given URL from the cache
-	 * @returns {(object|null)}
+	 * @returns {(object|undefined)}
 	 */
 	getStoredScrollPositions(url) {
-		return this.scrollPositionsStore[url];
+		const cacheKey = this.getResolvedUrl(url);
+		return this.scrollPositionsStore[cacheKey];
 	}
 
 	/**
