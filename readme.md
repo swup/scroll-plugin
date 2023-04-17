@@ -98,7 +98,7 @@ The animation behavior of the scroll animation can be adjusted by setting `scrol
 
 ### getAnchorElement
 
-Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).💡💡
+Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).
 
 ```javascript
 {
