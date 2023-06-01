@@ -276,6 +276,7 @@ export default class ScrollPlugin extends Plugin {
 	 */
 	onClickLink = (event) => {
 		this.maybeResetScrollPositions(event.delegateTarget);
+		if (event.delegateTarget.matches('[data-swup-preserve-scroll]')) this.ignorePageVisit = true;
 	};
 
 	/**
@@ -357,10 +358,10 @@ export default class ScrollPlugin extends Plugin {
 		return this.getResolvedUrl(getCurrentUrl());
 	}
 	/**
-	* Apply `swup.resolveUrl` to a given URL
-	*
-	* @returns {string}
-	*/
+	 * Apply `swup.resolveUrl` to a given URL
+	 *
+	 * @returns {string}
+	 */
 	getResolvedUrl(url) {
 		if (typeof this.swup.resolveUrl === 'function') {
 			return this.swup.resolveUrl(url);
