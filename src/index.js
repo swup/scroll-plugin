@@ -9,6 +9,9 @@ import Scrl from 'scrl';
 export default class ScrollPlugin extends Plugin {
 	name = 'ScrollPlugin';
 
+	// Allows to ignore a page visit from the outside
+	ignorePageVisit = false;
+
 	/**
 	 * Constructor
 	 * @param {?object} options the plugin options
@@ -233,6 +236,12 @@ export default class ScrollPlugin extends Plugin {
 	 */
 	doScrollingBetweenPages = (popstate) => {
 		const swup = this.swup;
+
+		// Bail early if someone asked to ignore this page visit
+		if (this.ignorePageVisit) {
+			this.ignorePageVisit = false;
+			return;
+		}
 
 		// Bail early on popstate and inactive `animateHistoryBrowsing`
 		if (popstate && !swup.options.animateHistoryBrowsing) {
