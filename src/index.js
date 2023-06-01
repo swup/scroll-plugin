@@ -11,9 +11,9 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Constructor
-	 * @param {?object} options the plugin options
+	 * @param {object|undefined} options the plugin options
 	 */
-	constructor(options) {
+	constructor(options = {}) {
 		super();
 		const defaultOptions = {
 			doScrollingRightAway: false,
@@ -348,10 +348,10 @@ export default class ScrollPlugin extends Plugin {
 		return this.getResolvedUrl(getCurrentUrl());
 	}
 	/**
-	* Apply `swup.resolveUrl` to a given URL
-	*
-	* @returns {string}
-	*/
+	 * Apply `swup.resolveUrl` to a given URL
+	 *
+	 * @returns {string}
+	 */
 	getResolvedUrl(url) {
 		if (typeof this.swup.resolveUrl === 'function') {
 			return this.swup.resolveUrl(url);
