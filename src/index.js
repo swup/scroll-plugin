@@ -11,9 +11,9 @@ export default class ScrollPlugin extends Plugin {
 
 	/**
 	 * Constructor
-	 * @param {?object} options the plugin options
+	 * @param {object|undefined} options the plugin options
 	 */
-	constructor(options) {
+	constructor(options = {}) {
 		super();
 		const defaultOptions = {
 			doScrollingRightAway: false,
