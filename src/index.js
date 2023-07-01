@@ -6,8 +6,8 @@ import Scrl from 'scrl';
  * Class representing a Scroll Plugin.
  * @extends Plugin
  */
-export default class ScrollPlugin extends Plugin {
-	name = 'ScrollPlugin';
+export default class SwupScrollPlugin extends Plugin {
+	name = 'SwupScrollPlugin';
 
 	/**
 	 * Constructor
