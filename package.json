@@ -2,7 +2,7 @@
   "name": "@swup/scroll-plugin",
   "amdName": "SwupScrollPlugin",
   "version": "3.0.0",
-  "description": "A swup plugin for smooth scrolling",
+  "description": "A swup plugin for customizable smooth scrolling",
   "type": "module",
   "source": "src/index.js",
   "main": "./dist/index.cjs",

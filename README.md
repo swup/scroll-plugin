@@ -1,6 +1,6 @@
 # Swup Scroll plugin
 
-A [swup](https://swup.js.org) plugin for smooth scrolling.
+A [swup](https://swup.js.org) plugin for customizable smooth scrolling.
 
 - Enables acceleration-based smooth scrolling
 - Animates scroll position between page visits
