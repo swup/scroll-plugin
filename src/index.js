@@ -3,11 +3,26 @@ import { getCurrentUrl, Location, queryAll } from 'swup';
 import Scrl from 'scrl';
 
 /**
- * Class representing a Scroll Plugin.
+ * Scroll Plugin
  * @extends Plugin
  */
 export default class SwupScrollPlugin extends Plugin {
 	name = 'SwupScrollPlugin';
+
+	defaults = {
+		doScrollingRightAway: false,
+		animateScroll: {
+			betweenPages: true,
+			samePageWithHash: true,
+			samePage: true
+		},
+		scrollFriction: 0.3,
+		scrollAcceleration: 0.04,
+		getAnchorElement: null,
+		offset: 0,
+		scrollContainers: `[data-swup-scroll-container]`,
+		shouldResetScrollPosition: (link) => true
+	};
 
 	/**
 	 * Constructor
@@ -15,25 +30,7 @@ export default class SwupScrollPlugin extends Plugin {
 	 */
 	constructor(options = {}) {
 		super();
-		const defaultOptions = {
-			doScrollingRightAway: false,
-			animateScroll: {
-				betweenPages: true,
-				samePageWithHash: true,
-				samePage: true
-			},
-			scrollFriction: 0.3,
-			scrollAcceleration: 0.04,
-			getAnchorElement: null,
-			offset: 0,
-			scrollContainers: `[data-swup-scroll-container]`,
-			shouldResetScrollPosition: (htmlAnchorElement) => true
-		};
-
-		this.options = {
-			...defaultOptions,
-			...options
-		};
+		this.options = { ...this.defaults, ...options };
 	}
 
 	/**
