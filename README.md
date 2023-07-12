@@ -189,9 +189,9 @@ swup.scrollTo(2000, true);
 
 ## Hooks
 
-The plugin adds two new hooks `scrollStart` and `scrollDone` :
+The plugin adds two new hooks `scroll:start` and `scroll:end` :
 
 ```js
-swup.hooks.on('scrollStart', () => console.log('Swup started scrolling'));
-swup.hooks.on('scrollDone', () => console.log('Swup finished scrolling'));
+swup.hooks.on('scroll:start', () => console.log('Swup started scrolling'));
+swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 ```
