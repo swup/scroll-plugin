@@ -26,18 +26,11 @@ export default class SwupScrollPlugin extends Plugin {
 		shouldResetScrollPosition: (link) => true
 	};
 
-	/**
-	 * Constructor
-	 * @param {object|undefined} options the plugin options
-	 */
 	constructor(options = {}) {
 		super();
 		this.options = { ...this.defaults, ...options };
 	}
 
-	/**
-	 * Runs when the plugin is mounted
-	 */
 	mount() {
 		const swup = this.swup;
 
@@ -46,9 +39,9 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// Initialize Scrl lib for smooth animations
 		this.scrl = new Scrl({
-			onStart: () => swup.hooks.triggerSync('scroll:start'),
-			onEnd: () => swup.hooks.triggerSync('scroll:end'),
-			onCancel: () => swup.hooks.triggerSync('scroll:end'),
+			onStart: () => swup.hooks.callSync('scroll:start'),
+			onEnd: () => swup.hooks.callSync('scroll:end'),
+			onCancel: () => swup.hooks.callSync('scroll:end'),
 			friction: this.options.scrollFriction,
 			acceleration: this.options.scrollAcceleration
 		});
@@ -58,9 +51,9 @@ export default class SwupScrollPlugin extends Plugin {
 			if (animate) {
 				this.scrl.scrollTo(offset);
 			} else {
-				swup.hooks.triggerSync('scroll:start');
+				swup.hooks.callSync('scroll:start');
 				window.scrollTo(0, offset);
-				swup.hooks.triggerSync('scroll:end');
+				swup.hooks.callSync('scroll:end');
 			}
 		};
 
@@ -78,40 +71,33 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// reset scroll positions
-		swup.hooks.on('link:click', this.onLinkClick);
+		this.on('link:click', this.onLinkClick);
 
 		// scroll to the top of the page
-		swup.hooks.replace('link:self', this.onLinkToSelf);
+		this.replace('link:self', this.onLinkToSelf);
 
 		// scroll to referenced element on the same page
-		swup.hooks.replace('link:anchor', this.onLinkToAnchor);
+		this.replace('link:anchor', this.onLinkToAnchor);
 
 		// scroll to the top of the page when transition starts, before replacing the content
-		swup.hooks.on('visit:start', this.onVisitStart);
+		this.on('visit:start', this.onVisitStart);
 
 		// store the current scroll positions before replacing the content
-		swup.hooks.before('content:replace', this.onBeforeReplaceContent);
+		this.before('content:replace', this.onBeforeReplaceContent);
 
 		// scroll to the top or target element after replacing the content
-		swup.hooks.replace('content:scroll', this.onScrollToContent);
+		this.replace('content:scroll', this.onScrollToContent);
 	}
 
 	/**
 	 * Runs when the plugin is unmounted
 	 */
 	unmount() {
-		const swup = this.swup;
-		delete swup.scrollTo;
-		delete this.scrl;
+		super.unmount();
 
 		window.history.scrollRestoration = this.previousScrollRestoration;
-
-		swup.hooks.off('link:click', this.onLinkClick);
-		swup.hooks.off('link:self', this.onLinkToSelf);
-		swup.hooks.off('link:anchor', this.onLinkToAnchor);
-		swup.hooks.off('visit:start', this.onVisitStart);
-		swup.hooks.off('content:scroll', this.onScrollToContent);
-		swup.hooks.off('content:replace', this.onBeforeReplaceContent);
+		delete this.swup.scrollTo;
+		delete this.scrl;
 	}
 
 	/**
@@ -164,7 +150,7 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Scroll to fragment on `link:anchor` hook
 	 */
-	onLinkToAnchor = (context, { hash }) => {
+	onLinkToAnchor = (visit, { hash }) => {
 		this.maybeScrollToAnchor(hash, 'link:anchor');
 	};
 
@@ -199,51 +185,49 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Check whether to scroll in `visit:start` hook
 	 */
-	onVisitStart = (context) => {
-		if (this.options.doScrollingRightAway && !context.scroll.target) {
-			context.scroll.scrolledToContent = true;
-			this.doScrollingBetweenPages(context);
+	onVisitStart = (visit) => {
+		if (this.options.doScrollingRightAway && !visit.scroll.target) {
+			visit.scroll.scrolledToContent = true;
+			this.doScrollingBetweenPages(visit);
 		}
 	};
 
 	/**
 	 * Check whether to scroll in `content:scroll` hook
 	 */
-	onScrollToContent = (context) => {
-		if (!context.scroll.scrolledToContent) {
-			this.doScrollingBetweenPages(context);
+	onScrollToContent = (visit) => {
+		if (!visit.scroll.scrolledToContent) {
+			this.doScrollingBetweenPages(visit);
 		}
-		this.restoreScrollContainers(context);
+		this.restoreScrollContainers(visit);
 	};
 
 	/**
-	 * Scrolls the window, based on context
+	 * Scrolls the window
 	 * @returns {void}
 	 */
-	doScrollingBetweenPages = (context) => {
-		const swup = this.swup;
-
+	doScrollingBetweenPages = (visit) => {
 		// Bail early on popstate if not animated: browser will handle it
-		if (context.history.popstate && !context.transition.animate) {
+		if (visit.history.popstate && !visit.transition.animate) {
 			return;
 		}
 
 		// Try scrolling to a given anchor
-		if (this.maybeScrollToAnchor(context.scroll.target, 'betweenPages')) {
+		if (this.maybeScrollToAnchor(visit.scroll.target, 'betweenPages')) {
 			return;
 		}
 
 		// Allow not resetting scroll position
-		if (!context.scroll.reset) {
+		if (!visit.scroll.reset) {
 			return;
 		}
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getStoredScrollPositions(this.getCurrentCacheKey()) || {};
-		const top = (scrollPositions.window && scrollPositions.window.top) || 0;
+		const top = scrollPositions.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
-		requestAnimationFrame(() => swup.scrollTo(top, this.shouldAnimate('betweenPages')));
+		requestAnimationFrame(() => this.swup.scrollTo(top, this.shouldAnimate('betweenPages')));
 	};
 
 	/**
@@ -255,11 +239,11 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Handles `clickLink`
+	 * Handles `link:click` hook
 	 * @returns {void}
 	 */
-	onLinkClick = (context, { el }) => {
-		this.maybeResetScrollPositions(context.trigger.el);
+	onLinkClick = (visit, { el }) => {
+		this.maybeResetScrollPositions(visit.trigger.el);
 	};
 
 	/**
