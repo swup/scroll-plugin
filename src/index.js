@@ -1,5 +1,5 @@
 import Plugin from '@swup/plugin';
-import { getCurrentUrl, Location, queryAll } from 'swup';
+import { getCurrentUrl, queryAll } from 'swup';
 import Scrl from 'scrl';
 
 /**
@@ -70,16 +70,10 @@ export default class SwupScrollPlugin extends Plugin {
 			window.history.scrollRestoration = 'manual';
 		}
 
-		// reset scroll positions
-		this.on('link:click', this.onLinkClick);
+		// reset scroll positions when a visit starts
+		this.on('visit:start', this.maybeResetScrollPositions);
 
-		// scroll to the top of the page
-		this.replace('link:self', this.onLinkToSelf);
-
-		// scroll to referenced element on the same page
-		this.replace('link:anchor', this.onLinkToAnchor);
-
-		// scroll to the top of the page when transition starts, before replacing the content
+		// scroll to the top of the page when a visit starts, before replacing the content
 		this.on('visit:start', this.onVisitStart);
 
 		// store the current scroll positions before replacing the content
@@ -87,6 +81,12 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// scroll to the top or target element after replacing the content
 		this.replace('content:scroll', this.onScrollToContent);
+
+		// scroll to the top of the page
+		this.replace('scroll:top', this.handleScrollToTop);
+
+		// scroll to an anchor on the same page
+		this.replace('scroll:anchor', this.handleScrollToAnchor);
 	}
 
 	/**
@@ -141,26 +141,27 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Scroll to top on `link:self` hook
+	 * Scroll to top on `scroll:top` hook
 	 */
-	onLinkToSelf = () => {
-		this.swup.scrollTo(0, this.shouldAnimate('link:self'));
+	handleScrollToTop = () => {
+		this.swup.scrollTo(0, this.shouldAnimate('samePage'));
+		return true;
 	};
 
 	/**
-	 * Scroll to fragment on `link:anchor` hook
+	 * Scroll to anchor on `scroll:anchor` hook
 	 */
-	onLinkToAnchor = (visit, { hash }) => {
-		this.maybeScrollToAnchor(hash, 'link:anchor');
+	handleScrollToAnchor = (visit, { hash }) => {
+		return this.maybeScrollToAnchor(hash, this.shouldAnimate('samePageWithHash'));
 	};
 
 	/**
 	 * Attempts to scroll to an anchor
 	 * @param {string} hash
-	 * @param {string} context
+	 * @param {boolean} animate
 	 * @returns {boolean}
 	 */
-	maybeScrollToAnchor(hash, context) {
+	maybeScrollToAnchor(hash, animate = false) {
 		if (!hash) {
 			return false;
 		}
@@ -177,7 +178,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		const { top: elementTop } = element.getBoundingClientRect();
 		const top = elementTop + window.scrollY - this.getOffset(element);
-		this.swup.scrollTo(top, this.shouldAnimate(context));
+		this.swup.scrollTo(top, animate);
 
 		return true;
 	}
@@ -213,7 +214,7 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// Try scrolling to a given anchor
-		if (this.maybeScrollToAnchor(visit.scroll.target, 'betweenPages')) {
+		if (this.maybeScrollToAnchor(visit.scroll.target, this.shouldAnimate('betweenPages'))) {
 			return;
 		}
 
@@ -239,25 +240,17 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Handles `link:click` hook
-	 * @returns {void}
-	 */
-	onLinkClick = (visit, { el }) => {
-		this.maybeResetScrollPositions(visit.trigger.el);
-	};
-
-	/**
 	 * Deletes the scroll positions for the URL a link is pointing to,
 	 * if shouldResetScrollPosition evaluates to true
-	 * @param {HTMLElement} el
 	 * @returns {void}
 	 */
-	maybeResetScrollPositions(el) {
-		if (!this.options.shouldResetScrollPosition(el)) {
-			return;
+	maybeResetScrollPositions(visit) {
+		const { url } = visit.to;
+		const { el } = visit.trigger;
+		const shouldReset = !el || this.options.shouldResetScrollPosition(el);
+		if (shouldReset) {
+			this.resetScrollPositions(url);
 		}
-		const { url } = Location.fromElement(el);
-		this.resetScrollPositions(url);
 	}
 
 	/**
