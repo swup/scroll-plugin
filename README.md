@@ -1,6 +1,11 @@
 # Swup Scroll plugin
 
-Adds awesome "acceleration based" automatic scrolling into the process of page transitions. The scrolling behaviour is customizable using options (see below).
+A [swup](https://swup.js.org) plugin for customizable smooth scrolling.
+
+- Enables acceleration-based smooth scrolling
+- Animates scroll position between page visits
+- Animates scrolling to anchors
+- Define a custom offset for scroll positions
 
 ## Installation
 
@@ -17,7 +22,7 @@ import SwupScrollPlugin from '@swup/scroll-plugin';
 Or include the minified production file from a CDN:
 
 ```html
-<script src="https://unpkg.com/@swup/scroll-plugin@2"></script>
+<script src="https://unpkg.com/@swup/scroll-plugin@3"></script>
 ```
 
 ## Usage
@@ -103,7 +108,7 @@ Customize how the scroll target is found on the page. Defaults to standard brows
 ```javascript
 {
   // Use a custom data attribute instead of id
-  getAnchorElement: hash => {
+  getAnchorElement: (hash) => {
     hash = hash.replace('#', '')
     return document.querySelector(`[data-scroll-target="${hash}"]`)
   }
@@ -168,27 +173,25 @@ new SwupScrollPlugin({
   getAnchorElement: null,
   offset: 0,
   scrollContainers: `[data-swup-scroll-container]`,
-  shouldResetScrollPosition: htmlAnchorElement => true
+  shouldResetScrollPosition: (link) => true
 });
 ```
 
-## Changes of the swup instance
+## Methods on the swup instance
 
 Scroll Plugin adds the method `scrollTo` to the swup instance, which can be used for custom scrolling.
-The method accepts an offset in pixels and a boolean, if the scroll position should be animated:
+The method accepts a scroll position in pixels and a boolean whether the scroll position should be animated:
 
 ```js
 // will animate the scroll position of the window to 2000px
 swup.scrollTo(2000, true);
 ```
 
-The Plugin also adds two new events `scrollStart` and `scrollDone` to swup, that can be listened to with the `on` method:
+## Hooks
+
+The plugin adds two new hooks `scroll:start` and `scroll:end` :
 
 ```js
-swup.on('scrollStart', () => {
-  console.log('Swup started scrolling');
-});
-swup.on('scrollDone', () => {
-  console.log('Swup finished scrolling');
-});
+swup.hooks.on('scroll:start', () => console.log('Swup started scrolling'));
+swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 ```
