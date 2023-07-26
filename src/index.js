@@ -209,7 +209,7 @@ export default class SwupScrollPlugin extends Plugin {
 	 */
 	doScrollingBetweenPages = (visit) => {
 		// Bail early on popstate if not animated: browser will handle it
-		if (visit.history.popstate && !visit.transition.animate) {
+		if (visit.history.popstate && !visit.animation.animate) {
 			return;
 		}
 
