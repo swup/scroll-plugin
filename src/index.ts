@@ -23,12 +23,12 @@ type ScrollPosition = {
 	left: number;
 };
 
-type CachedScrollPositions = {
+type ScrollPositionsCacheEntry = {
 	window: ScrollPosition;
 	containers: ScrollPosition[];
 };
 
-type ScrollPositionsCache = Record<string, CachedScrollPositions>;
+type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
@@ -72,7 +72,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 	options: Options;
 
-	scrollPositionsCache: ScrollPositionsCache = {};
+	cachedScrollPositions: ScrollPositionsCache = {};
 	previousScrollRestoration?: ScrollRestoration;
 	currentCacheKey?: string;
 
@@ -107,12 +107,11 @@ export default class SwupScrollPlugin extends Plugin {
 			}
 		};
 
-		// This object will hold all scroll positions
-		this.scrollPositionsCache = {};
-
-		// disable browser scroll control on popstates when
-		// animateHistoryBrowsing option is enabled in swup.
-		// Cache the previous setting to be able to properly restore it on unmount
+		/**
+		 * Disable browser scroll restoration for history visits
+		 * if `swup.options.animateHistoryBrowsing` is true
+		 * Store the previous setting to be able to properly restore it on unmount
+		 */
 		this.previousScrollRestoration = window.history.scrollRestoration;
 		if (swup.options.animateHistoryBrowsing) {
 			window.history.scrollRestoration = 'manual';
@@ -121,7 +120,7 @@ export default class SwupScrollPlugin extends Plugin {
 		// scroll to the top of the page when a visit starts, before replacing the content
 		this.on('visit:start', this.onVisitStart);
 
-		// store the current scroll positions before replacing the content
+		// cache the current scroll positions before replacing the content
 		this.before('content:replace', this.onBeforeReplaceContent);
 
 		// scroll to the top or target element after replacing the content
@@ -144,6 +143,7 @@ export default class SwupScrollPlugin extends Plugin {
 			window.history.scrollRestoration = this.previousScrollRestoration;
 		}
 
+		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
 		delete this.scrl;
 	}
@@ -317,7 +317,7 @@ export default class SwupScrollPlugin extends Plugin {
 			containers
 		};
 
-		this.scrollPositionsCache[url] = positions;
+		this.cachedScrollPositions[url] = positions;
 	}
 
 	/**
@@ -325,20 +325,19 @@ export default class SwupScrollPlugin extends Plugin {
 	 */
 	resetScrollPositions(url: string): void {
 		const cacheKey = this.swup.resolveUrl(url);
-		delete this.scrollPositionsCache[cacheKey];
+		delete this.cachedScrollPositions[cacheKey];
 	}
 
 	/**
 	 * Get the stored scroll positions for a given URL from the cache
 	 */
-	getCachedScrollPositions(url: string): CachedScrollPositions | undefined {
+	getCachedScrollPositions(url: string): ScrollPositionsCacheEntry | undefined {
 		const cacheKey = this.swup.resolveUrl(url);
-		return this.scrollPositionsCache[cacheKey];
+		return this.cachedScrollPositions[cacheKey];
 	}
 
 	/**
 	 * Restore the scroll positions for all matching scrollContainers
-	 * @returns void
 	 */
 	restoreScrollContainers(url: string): void {
 		// get the stored scroll positions from the cache
