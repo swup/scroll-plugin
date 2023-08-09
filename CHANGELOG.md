@@ -4,7 +4,7 @@
 
 ## [3.1.0] - 2023-08-09
 
-- Update for swup 4 compatibility
+- Allow updating hash and scroll target separately
 
 ## [3.0.0] - 2023-07-26
 
