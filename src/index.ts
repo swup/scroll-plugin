@@ -268,7 +268,7 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
-		const scrollPositions = this.getCachedScrollPositions(this.getCurrentCacheKey());
+		const scrollPositions = this.getCachedScrollPositions(this.swup.resolveUrl(getCurrentUrl()));
 		const top = scrollPositions?.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
@@ -342,10 +342,4 @@ export default class SwupScrollPlugin extends Plugin {
 		});
 	}
 
-	/**
-	 * Get the current cache key for the scroll positions.
-	 */
-	getCurrentCacheKey(): string {
-		return this.swup.resolveUrl(getCurrentUrl());
-	}
 }
