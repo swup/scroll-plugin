@@ -15,7 +15,7 @@ export type Options = {
 	getAnchorElement?: (hash: string) => Element | null;
 	offset: number | ((el: Element) => number);
 	scrollContainers: `[data-swup-scroll-container]`;
-	shouldResetScrollPosition: (link: Element) => true;
+	shouldResetScrollPosition: (trigger: Element) => boolean;
 };
 
 type ScrollPosition = {
