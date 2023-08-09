@@ -1,17 +1,61 @@
 import Plugin from '@swup/plugin';
-import { getCurrentUrl, queryAll } from 'swup';
+import { Handler, Visit, getCurrentUrl, queryAll } from 'swup';
+// @ts-expect-error
 import Scrl from 'scrl';
+
+export type Options = {
+	doScrollingRightAway: boolean;
+	animateScroll: {
+		betweenPages: boolean;
+		samePageWithHash: boolean;
+		samePage: boolean;
+	};
+	scrollFriction: number;
+	scrollAcceleration: number;
+	getAnchorElement?: (hash: string) => Element | null;
+	offset: number | ((el: Element) => number);
+	scrollContainers: `[data-swup-scroll-container]`;
+	shouldResetScrollPosition: (link: Element) => true;
+};
+
+type ScrollPosition = {
+	top: number;
+	left: number;
+};
+
+type CachedScrollPositions = {
+	window: ScrollPosition;
+	containers: ScrollPosition[];
+};
+
+type ScrollPositionsCache = Record<string, CachedScrollPositions>;
+
+declare module 'swup' {
+	export interface Swup {
+		scrollTo?: (offset: number, animate: boolean) => void;
+	}
+
+	export interface VisitScroll {
+		scrolledToContent?: boolean;
+	}
+
+	export interface HookDefinitions {
+		'scroll:start': {};
+		'scroll:end': {};
+	}
+}
 
 /**
  * Scroll Plugin
- * @extends Plugin
  */
 export default class SwupScrollPlugin extends Plugin {
 	name = 'SwupScrollPlugin';
 
 	requires = { swup: '>=4' };
 
-	defaults = {
+	scrl: any;
+
+	defaults: Options = {
 		doScrollingRightAway: false,
 		animateScroll: {
 			betweenPages: true,
@@ -20,13 +64,19 @@ export default class SwupScrollPlugin extends Plugin {
 		},
 		scrollFriction: 0.3,
 		scrollAcceleration: 0.04,
-		getAnchorElement: null,
+		getAnchorElement: undefined,
 		offset: 0,
 		scrollContainers: `[data-swup-scroll-container]`,
-		shouldResetScrollPosition: (link) => true
+		shouldResetScrollPosition: () => true
 	};
 
-	constructor(options = {}) {
+	options: Options;
+
+	scrollPositionsCache: ScrollPositionsCache = {};
+	previousScrollRestoration?: ScrollRestoration;
+	currentCacheKey?: string;
+
+	constructor(options: Partial<Options> = {}) {
 		super();
 		this.options = { ...this.defaults, ...options };
 	}
@@ -58,7 +108,7 @@ export default class SwupScrollPlugin extends Plugin {
 		};
 
 		// This object will hold all scroll positions
-		this.scrollPositionsStore = {};
+		this.scrollPositionsCache = {};
 		// this URL helps with storing the current scroll positions on `willReplaceContent`
 		this.currentCacheKey = this.getCurrentCacheKey();
 
@@ -95,17 +145,18 @@ export default class SwupScrollPlugin extends Plugin {
 	unmount() {
 		super.unmount();
 
-		window.history.scrollRestoration = this.previousScrollRestoration;
+		if (this.previousScrollRestoration) {
+			window.history.scrollRestoration = this.previousScrollRestoration;
+		}
+
 		delete this.swup.scrollTo;
 		delete this.scrl;
 	}
 
 	/**
 	 * Detects if a scroll should be animated, based on context
-	 * @param {string} context
-	 * @returns {boolean}
 	 */
-	shouldAnimate(context) {
+	shouldAnimate(context: keyof Options['animateScroll']): boolean {
 		if (typeof this.options.animateScroll === 'boolean') {
 			return this.options.animateScroll;
 		}
@@ -114,54 +165,48 @@ export default class SwupScrollPlugin extends Plugin {
 
 	/**
 	 * Get an element based on anchor
-	 * @param {string} hash
-	 * @returns {mixed}
 	 */
-	getAnchorElement = (hash = '') => {
+	getAnchorElement = (hash: string = ''): Element | null => {
 		// Look for a custom function provided via the plugin options
 		if (typeof this.options.getAnchorElement === 'function') {
 			return this.options.getAnchorElement(hash);
-		} else {
-			return this.swup.getAnchorElement(hash);
 		}
+
+		return this.swup.getAnchorElement(hash);
 	};
 
 	/**
 	 * Get the offset for a scroll
-	 * @param {(HtmlELement|null)} element
-	 * @returns {number}
 	 */
-	getOffset = (element = null) => {
+	getOffset = (el?: Element): number => {
+		if (!el) return 0;
 		// If options.offset is a function, apply and return it
 		if (typeof this.options.offset === 'function') {
-			return parseInt(this.options.offset(element), 10);
+			return Math.round(this.options.offset(el));
 		}
 		// Otherwise, return the sanitized offset
-		return parseInt(this.options.offset, 10);
+		return Math.round(this.options.offset);
 	};
 
 	/**
 	 * Scroll to top on `scroll:top` hook
 	 */
-	handleScrollToTop = () => {
-		this.swup.scrollTo(0, this.shouldAnimate('samePage'));
+	handleScrollToTop: Handler<'scroll:top'> = () => {
+		this.swup.scrollTo?.(0, this.shouldAnimate('samePage'));
 		return true;
 	};
 
 	/**
 	 * Scroll to anchor on `scroll:anchor` hook
 	 */
-	handleScrollToAnchor = (visit, { hash }) => {
+	handleScrollToAnchor: Handler<'scroll:anchor'> = (visit, { hash }) => {
 		return this.maybeScrollToAnchor(hash, this.shouldAnimate('samePageWithHash'));
 	};
 
 	/**
 	 * Attempts to scroll to an anchor
-	 * @param {string} hash
-	 * @param {boolean} animate
-	 * @returns {boolean}
 	 */
-	maybeScrollToAnchor(hash, animate = false) {
+	maybeScrollToAnchor(hash?: string, animate: boolean = false): boolean {
 		if (!hash) {
 			return false;
 		}
@@ -178,7 +223,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		const { top: elementTop } = element.getBoundingClientRect();
 		const top = elementTop + window.scrollY - this.getOffset(element);
-		this.swup.scrollTo(top, animate);
+		this.swup.scrollTo?.(top, animate);
 
 		return true;
 	}
@@ -186,8 +231,9 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Check whether to scroll in `visit:start` hook
 	 */
-	onVisitStart = (visit) => {
+	onVisitStart: Handler<'visit:start'> = (visit) => {
 		const scrollTarget = visit.scroll.target || visit.to.hash;
+		visit.scroll.scrolledToContent = false;
 		if (this.options.doScrollingRightAway && !scrollTarget) {
 			visit.scroll.scrolledToContent = true;
 			this.doScrollingBetweenPages(visit);
@@ -197,18 +243,17 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Check whether to scroll in `content:scroll` hook
 	 */
-	onScrollToContent = (visit) => {
+	onScrollToContent: Handler<'content:scroll'> = (visit) => {
 		if (!visit.scroll.scrolledToContent) {
 			this.doScrollingBetweenPages(visit);
 		}
-		this.restoreScrollContainers(visit);
+		this.restoreScrollContainers();
 	};
 
 	/**
 	 * Scrolls the window
-	 * @returns {void}
 	 */
-	doScrollingBetweenPages = (visit) => {
+	doScrollingBetweenPages = (visit: Visit): void => {
 		// Bail early on popstate if not animated: browser will handle it
 		if (visit.history.popstate && !visit.animation.animate) {
 			return;
@@ -226,27 +271,26 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
-		const scrollPositions = this.getStoredScrollPositions(this.getCurrentCacheKey()) || {};
-		const top = scrollPositions.window?.top || 0;
+		const scrollPositions = this.getCachedScrollPositions(this.getCurrentCacheKey());
+		const top = scrollPositions?.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
-		requestAnimationFrame(() => this.swup.scrollTo(top, this.shouldAnimate('betweenPages')));
+		requestAnimationFrame(() => this.swup.scrollTo?.(top, this.shouldAnimate('betweenPages')));
 	};
 
 	/**
 	 * Stores the current scroll positions for the URL we just came from
 	 */
-	onBeforeReplaceContent = () => {
-		this.storeScrollPositions(this.currentCacheKey);
+	onBeforeReplaceContent: Handler<"content:replace"> = () => {
+		this.storeScrollPositions(this.currentCacheKey!);
 		this.currentCacheKey = this.getCurrentCacheKey();
 	};
 
 	/**
 	 * Deletes the scroll positions for the URL a link is pointing to,
 	 * if shouldResetScrollPosition evaluates to true
-	 * @returns {void}
 	 */
-	maybeResetScrollPositions(visit) {
+	maybeResetScrollPositions: Handler<"visit:start"> = (visit: Visit): void => {
 		const { url } = visit.to;
 		const { el } = visit.trigger;
 		const shouldReset = !el || this.options.shouldResetScrollPosition(el);
@@ -257,10 +301,8 @@ export default class SwupScrollPlugin extends Plugin {
 
 	/**
 	 * Stores the scroll positions for the current URL
-	 * @param {string} url
-	 * @returns {void}
 	 */
-	storeScrollPositions(url) {
+	storeScrollPositions(url: string): void {
 		// retrieve the current scroll position for all containers
 		const containers = queryAll(this.options.scrollContainers).map((el) => ({
 			top: el.scrollTop,
@@ -268,7 +310,7 @@ export default class SwupScrollPlugin extends Plugin {
 		}));
 
 		// construct the final object entry, with the window scroll positions added
-		this.scrollPositionsStore[url] = {
+		this.scrollPositionsCache[url] = {
 			window: { top: window.scrollY, left: window.scrollX },
 			containers
 		};
@@ -276,31 +318,28 @@ export default class SwupScrollPlugin extends Plugin {
 
 	/**
 	 * Resets stored scroll positions for a given URL
-	 * @param {string} url
 	 */
-	resetScrollPositions(url) {
+	resetScrollPositions(url: string): void {
 		const cacheKey = this.swup.resolveUrl(url);
-		delete this.scrollPositionsStore[cacheKey];
-		this.scrollPositionsStore[cacheKey] = null;
+		delete this.scrollPositionsCache[cacheKey];
 	}
 
 	/**
 	 * Get the stored scroll positions for a given URL from the cache
-	 * @returns {(object|undefined)}
 	 */
-	getStoredScrollPositions(url) {
+	getCachedScrollPositions(url: string): CachedScrollPositions | undefined {
 		const cacheKey = this.swup.resolveUrl(url);
-		return this.scrollPositionsStore[cacheKey];
+		return this.scrollPositionsCache[cacheKey];
 	}
 
 	/**
 	 * Restore the scroll positions for all matching scrollContainers
 	 * @returns void
 	 */
-	restoreScrollContainers() {
+	restoreScrollContainers(): void {
 		// get the stored scroll positions from the cache
-		const scrollPositions = this.getStoredScrollPositions(this.getCurrentCacheKey()) || {};
-		if (scrollPositions.containers == null) {
+		const scrollPositions = this.getCachedScrollPositions(this.getCurrentCacheKey());
+		if (scrollPositions?.containers == null) {
 			return;
 		}
 
@@ -315,9 +354,8 @@ export default class SwupScrollPlugin extends Plugin {
 
 	/**
 	 * Get the current cache key for the scroll positions.
-	 * @returns {string}
 	 */
-	getCurrentCacheKey() {
+	getCurrentCacheKey(): string {
 		return this.swup.resolveUrl(getCurrentUrl());
 	}
 }
