@@ -51,7 +51,7 @@ declare module 'swup' {
 export default class SwupScrollPlugin extends Plugin {
 	name = 'SwupScrollPlugin';
 
-	requires = { swup: '>=4' };
+	requires = { swup: '>=4.2.0' };
 
 	scrl: any;
 
