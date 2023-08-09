@@ -9,7 +9,7 @@ import Scrl from 'scrl';
 export default class SwupScrollPlugin extends Plugin {
 	name = 'SwupScrollPlugin';
 
-	requires = { swup: '>=4.2' };
+	requires = { swup: '>=4' };
 
 	defaults = {
 		doScrollingRightAway: false,
