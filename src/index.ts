@@ -118,9 +118,6 @@ export default class SwupScrollPlugin extends Plugin {
 			window.history.scrollRestoration = 'manual';
 		}
 
-		// reset scroll positions when a visit starts
-		this.on('visit:start', this.maybeResetScrollPositions);
-
 		// scroll to the top of the page when a visit starts, before replacing the content
 		this.on('visit:start', this.onVisitStart);
 
@@ -230,12 +227,14 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart: Handler<'visit:start'> = (visit) => {
-		// this URL helps with storing the current scroll positions on `willReplaceContent`
-		this.currentCacheKey = this.getCurrentCacheKey();
+		this.maybeResetScrollPositions(visit);
 
 		const scrollTarget = visit.scroll.target || visit.to.hash;
 
 		visit.scroll.scrolledToContent = false;
+
+		// this URL helps with storing the current scroll positions on `willReplaceContent`
+		this.currentCacheKey = this.getCurrentCacheKey();
 
 		if (this.options.doScrollingRightAway && !scrollTarget) {
 			visit.scroll.scrolledToContent = true;
@@ -250,7 +249,7 @@ export default class SwupScrollPlugin extends Plugin {
 		if (!visit.scroll.scrolledToContent) {
 			this.doScrollingBetweenPages(visit);
 		}
-		this.restoreScrollContainers();
+		this.restoreScrollContainers(visit.to.url);
 	};
 
 	/**
@@ -285,26 +284,27 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Stores the current scroll positions for the URL we just came from
 	 */
 	onBeforeReplaceContent: Handler<'content:replace'> = () => {
-		this.storeScrollPositions(this.currentCacheKey!);
+		this.cacheScrollPositions(this.currentCacheKey!);
 	};
 
 	/**
-	 * Deletes the scroll positions for the URL a link is pointing to,
-	 * if shouldResetScrollPosition evaluates to true
+	 * Resets cached scroll positions for visits with a trigger element,
+	 * where shouldResetScrollPosition returns true for that trigger
 	 */
-	maybeResetScrollPositions: Handler<'visit:start'> = (visit: Visit): void => {
+	maybeResetScrollPositions = (visit: Visit): void => {
 		const { url } = visit.to;
 		const { el } = visit.trigger;
-		const shouldReset = !el || this.options.shouldResetScrollPosition(el);
-		if (shouldReset) {
-			this.resetScrollPositions(url);
-		}
+
+		/**	Bail early if no trigger element or the scroll positions shouldn't be reset for the element */
+		if ( !el || !this.options.shouldResetScrollPosition(el)) return;
+
+		this.resetScrollPositions(url);
 	};
 
 	/**
 	 * Stores the scroll positions for the current URL
 	 */
-	storeScrollPositions(url: string): void {
+	cacheScrollPositions(url: string): void {
 		// retrieve the current scroll position for all containers
 		const containers = queryAll(this.options.scrollContainers).map((el) => ({
 			top: el.scrollTop,
@@ -312,10 +312,12 @@ export default class SwupScrollPlugin extends Plugin {
 		}));
 
 		// construct the final object entry, with the window scroll positions added
-		this.scrollPositionsCache[url] = {
+		const positions = {
 			window: { top: window.scrollY, left: window.scrollX },
 			containers
 		};
+
+		this.scrollPositionsCache[url] = positions;
 	}
 
 	/**
@@ -338,10 +340,10 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Restore the scroll positions for all matching scrollContainers
 	 * @returns void
 	 */
-	restoreScrollContainers(): void {
+	restoreScrollContainers(url: string): void {
 		// get the stored scroll positions from the cache
-		const scrollPositions = this.getCachedScrollPositions(this.getCurrentCacheKey());
-		if (scrollPositions?.containers == null) {
+		const scrollPositions = this.getCachedScrollPositions(url);
+		if (!scrollPositions || scrollPositions.containers.length === 0) {
 			return;
 		}
 
