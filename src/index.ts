@@ -109,8 +109,6 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// This object will hold all scroll positions
 		this.scrollPositionsCache = {};
-		// this URL helps with storing the current scroll positions on `willReplaceContent`
-		this.currentCacheKey = this.getCurrentCacheKey();
 
 		// disable browser scroll control on popstates when
 		// animateHistoryBrowsing option is enabled in swup.
@@ -232,8 +230,13 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart: Handler<'visit:start'> = (visit) => {
+		// this URL helps with storing the current scroll positions on `willReplaceContent`
+		this.currentCacheKey = this.getCurrentCacheKey();
+
 		const scrollTarget = visit.scroll.target || visit.to.hash;
+
 		visit.scroll.scrolledToContent = false;
+
 		if (this.options.doScrollingRightAway && !scrollTarget) {
 			visit.scroll.scrolledToContent = true;
 			this.doScrollingBetweenPages(visit);
@@ -281,23 +284,22 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Stores the current scroll positions for the URL we just came from
 	 */
-	onBeforeReplaceContent: Handler<"content:replace"> = () => {
+	onBeforeReplaceContent: Handler<'content:replace'> = () => {
 		this.storeScrollPositions(this.currentCacheKey!);
-		this.currentCacheKey = this.getCurrentCacheKey();
 	};
 
 	/**
 	 * Deletes the scroll positions for the URL a link is pointing to,
 	 * if shouldResetScrollPosition evaluates to true
 	 */
-	maybeResetScrollPositions: Handler<"visit:start"> = (visit: Visit): void => {
+	maybeResetScrollPositions: Handler<'visit:start'> = (visit: Visit): void => {
 		const { url } = visit.to;
 		const { el } = visit.trigger;
 		const shouldReset = !el || this.options.shouldResetScrollPosition(el);
 		if (shouldReset) {
 			this.resetScrollPositions(url);
 		}
-	}
+	};
 
 	/**
 	 * Stores the scroll positions for the current URL
