@@ -187,7 +187,8 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart = (visit) => {
-		if (this.options.doScrollingRightAway && !visit.scroll.target) {
+		const scrollTarget = visit.scroll.target || visit.to.hash;
+		if (this.options.doScrollingRightAway && !scrollTarget) {
 			visit.scroll.scrolledToContent = true;
 			this.doScrollingBetweenPages(visit);
 		}
@@ -214,7 +215,8 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// Try scrolling to a given anchor
-		if (this.maybeScrollToAnchor(visit.scroll.target, this.shouldAnimate('betweenPages'))) {
+		const scrollTarget = visit.scroll.target || visit.to.hash;
+		if (this.maybeScrollToAnchor(scrollTarget, this.shouldAnimate('betweenPages'))) {
 			return;
 		}
 
