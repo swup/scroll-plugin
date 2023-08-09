@@ -117,6 +117,9 @@ export default class SwupScrollPlugin extends Plugin {
 			window.history.scrollRestoration = 'manual';
 		}
 
+		// this URL helps with storing the current scroll positions on `willReplaceContent`
+		this.currentCacheKey = this.getCurrentCacheKey();
+
 		// scroll to the top of the page when a visit starts, before replacing the content
 		this.on('visit:start', this.onVisitStart);
 
@@ -233,9 +236,6 @@ export default class SwupScrollPlugin extends Plugin {
 
 		visit.scroll.scrolledToContent = false;
 
-		// this URL helps with storing the current scroll positions on `willReplaceContent`
-		this.currentCacheKey = this.getCurrentCacheKey();
-
 		if (this.options.doScrollingRightAway && !scrollTarget) {
 			visit.scroll.scrolledToContent = true;
 			this.doScrollingBetweenPages(visit);
@@ -285,6 +285,7 @@ export default class SwupScrollPlugin extends Plugin {
 	 */
 	onBeforeReplaceContent: Handler<'content:replace'> = () => {
 		this.cacheScrollPositions(this.currentCacheKey!);
+		this.currentCacheKey = this.getCurrentCacheKey();
 	};
 
 	/**
@@ -295,10 +296,11 @@ export default class SwupScrollPlugin extends Plugin {
 		const { url } = visit.to;
 		const { el } = visit.trigger;
 
-		/**	Bail early if no trigger element or the scroll positions shouldn't be reset for the element */
-		if ( !el || !this.options.shouldResetScrollPosition(el)) return;
+		if (!el) return;
 
-		this.resetScrollPositions(url);
+		if (this.options.shouldResetScrollPosition(el)) {
+			this.resetScrollPositions(url)
+		}
 	};
 
 	/**
