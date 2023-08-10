@@ -2,6 +2,12 @@
 
 <!-- ## [Unreleased] -->
 
+## [3.1.1] - 2023-08-10
+
+- Port to typescript
+- Fix regression where scroll positions always were reset
+- Require swup `>=4.2.0`
+
 ## [3.1.0] - 2023-08-09
 
 - Allow updating hash and scroll target separately
@@ -54,8 +60,9 @@
 
 - Initial release
 
-[Unreleased]: https://github.com/swup/scroll-plugin/compare/3.1.0...HEAD
+[Unreleased]: https://github.com/swup/scroll-plugin/compare/3.1.1...HEAD
 
+[3.1.1]: https://github.com/swup/scroll-plugin/releases/tag/3.1.1
 [3.1.0]: https://github.com/swup/scroll-plugin/releases/tag/3.1.0
 [3.0.0]: https://github.com/swup/scroll-plugin/releases/tag/3.0.0
 [2.0.3]: https://github.com/swup/scroll-plugin/releases/tag/2.0.3
