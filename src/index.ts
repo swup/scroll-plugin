@@ -174,10 +174,10 @@ export default class SwupScrollPlugin extends Plugin {
 		if (!el) return 0;
 		// If options.offset is a function, apply and return it
 		if (typeof this.options.offset === 'function') {
-			return Math.round(this.options.offset(el));
+			return parseInt(String(this.options.offset(el)), 10);
 		}
 		// Otherwise, return the sanitized offset
-		return Math.round(this.options.offset);
+		return parseInt(String(this.options.offset), 10);
 	};
 
 	/**
