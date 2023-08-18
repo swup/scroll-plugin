@@ -282,10 +282,10 @@ export default class SwupScrollPlugin extends Plugin {
 	maybeResetScrollPositions = (visit: Visit): void => {
 		const { url } = visit.to;
 		const { el } = visit.trigger;
-
-		if (el && this.options.shouldResetScrollPosition(el)) {
-			this.resetScrollPositions(url);
+		if (el && !this.options.shouldResetScrollPosition(el)) {
+			return;
 		}
+		this.resetScrollPositions(url);
 	};
 
 	/**
