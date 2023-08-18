@@ -9,24 +9,6 @@ declare module 'swup' {
 	}
 }
 
-declare module 'swup' {
-	export interface Swup {
-		scrollTo?: (offset: number, animate?: boolean) => void;
-	}
-
-	export interface VisitScroll {
-		/** Whether scrolling is animated. Set by Scroll Plugin. */
-		animate?: boolean;
-		/** Whether the scroll position was reset after page load. Set by Scroll Plugin. */
-		scrolledToContent?: boolean;
-	}
-
-	export interface HookDefinitions {
-		'scroll:start': {};
-		'scroll:end': {};
-	}
-}
-
 export type Options = {
 	doScrollingRightAway: boolean;
 	animateScroll: {
@@ -53,6 +35,24 @@ type ScrollPositionsCacheEntry = {
 };
 
 type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
+
+declare module 'swup' {
+	export interface Swup {
+		scrollTo?: (offset: number, animate?: boolean) => void;
+	}
+
+	export interface VisitScroll {
+		/** Whether scrolling is animated. Set by Scroll Plugin. */
+		animate?: boolean;
+		/** Whether the scroll position was reset after page load. Set by Scroll Plugin. */
+		scrolledToContent?: boolean;
+	}
+
+	export interface HookDefinitions {
+		'scroll:start': {};
+		'scroll:end': {};
+	}
+}
 
 /**
  * Scroll Plugin
