@@ -124,7 +124,7 @@ export default class SwupScrollPlugin extends Plugin {
 		this.on('visit:start', this.onVisitStart);
 
 		// scroll to the top or target element after replacing the content
-		this.replace('content:scroll', this.onScrollToContent);
+		this.replace('content:scroll', this.handleScrollToContent);
 
 		// scroll to the top of the page
 		this.replace('scroll:top', this.handleScrollToTop);
@@ -244,7 +244,7 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Check whether to scroll in `content:scroll` hook
 	 */
-	onScrollToContent: Handler<'content:scroll'> = (visit) => {
+	handleScrollToContent: Handler<'content:scroll'> = (visit) => {
 		if (!visit.scroll.scrolledToContent) {
 			this.doScrollingBetweenPages(visit);
 		}
