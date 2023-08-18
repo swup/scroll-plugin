@@ -127,11 +127,11 @@ export default class SwupScrollPlugin extends Plugin {
 		this.replace('content:scroll', this.handleScrollToContent);
 
 		// scroll to the top of the same page
-		this.before('link:self', this.onBeforeLinkToSelf);
+		this.before('link:self', this.onBeforeLinkToSelf, { priority: -1 });
 		this.replace('scroll:top', this.handleScrollToTop);
 
 		// scroll to an anchor on the same page
-		this.before('link:anchor', this.onBeforeLinkToAnchor);
+		this.before('link:anchor', this.onBeforeLinkToAnchor, { priority: -1 });
 		this.replace('scroll:anchor', this.handleScrollToAnchor);
 	}
 
