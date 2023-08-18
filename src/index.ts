@@ -126,10 +126,12 @@ export default class SwupScrollPlugin extends Plugin {
 		// scroll to the top or target element after replacing the content
 		this.replace('content:scroll', this.handleScrollToContent);
 
-		// scroll to the top of the page
+		// scroll to the top of the same page
+		this.before('link:self', this.onBeforeLinkToSelf);
 		this.replace('scroll:top', this.handleScrollToTop);
 
 		// scroll to an anchor on the same page
+		this.before('link:anchor', this.onBeforeLinkToAnchor);
 		this.replace('scroll:anchor', this.handleScrollToAnchor);
 	}
 
@@ -184,18 +186,32 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
+	 * Store scroll animation status in visit object before scrolling up
+	 */
+	onBeforeLinkToSelf: Handler<'link:self'> = (visit) => {
+		visit.scroll.animate = this.shouldAnimate('samePage');
+	};
+
+	/**
 	 * Scroll to top on `scroll:top` hook
 	 */
-	handleScrollToTop: Handler<'scroll:top'> = () => {
-		this.swup.scrollTo?.(0, this.shouldAnimate('samePage'));
+	handleScrollToTop: Handler<'scroll:top'> = (visit) => {
+		this.swup.scrollTo?.(0, visit.scroll.animate);
 		return true;
+	};
+
+	/**
+	 * Store scroll animation status in visit object before scrolling to anchor
+	 */
+	onBeforeLinkToAnchor: Handler<'link:anchor'> = (visit) => {
+		visit.scroll.animate = this.shouldAnimate('samePageWithHash');
 	};
 
 	/**
 	 * Scroll to anchor on `scroll:anchor` hook
 	 */
 	handleScrollToAnchor: Handler<'scroll:anchor'> = (visit, { hash }) => {
-		return this.maybeScrollToAnchor(hash, this.shouldAnimate('samePageWithHash'));
+		return this.maybeScrollToAnchor(hash, visit.scroll.animate);
 	};
 
 	/**
@@ -230,7 +246,7 @@ export default class SwupScrollPlugin extends Plugin {
 		this.maybeResetScrollPositions(visit);
 		this.cacheScrollPositions(visit.from.url);
 
-		const scrollTarget = visit.scroll.target || visit.to.hash;
+		const scrollTarget = visit.scroll.target ?? visit.to.hash;
 
 		visit.scroll.scrolledToContent = false;
 		visit.scroll.animate = this.shouldAnimate('betweenPages');
