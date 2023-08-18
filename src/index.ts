@@ -246,13 +246,11 @@ export default class SwupScrollPlugin extends Plugin {
 		this.maybeResetScrollPositions(visit);
 		this.cacheScrollPositions(visit.from.url);
 
-		const scrollTarget = visit.scroll.target ?? visit.to.hash;
-
 		visit.scroll.scrolledToContent = false;
 		visit.scroll.animate = this.shouldAnimate('betweenPages');
 
+		const scrollTarget = visit.scroll.target ?? visit.to.hash;
 		if (this.options.doScrollingRightAway && !scrollTarget) {
-			visit.scroll.scrolledToContent = true;
 			this.doScrollingBetweenPages(visit);
 		}
 	};
@@ -277,8 +275,8 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// Try scrolling to a given anchor
-		const scrollTarget = visit.scroll.target || visit.to.hash;
-		if (this.maybeScrollToAnchor(scrollTarget, visit.scroll.animate)) {
+		const scrollTarget = visit.scroll.target ?? visit.to.hash;
+		if (scrollTarget && this.maybeScrollToAnchor(scrollTarget, visit.scroll.animate)) {
 			return;
 		}
 
@@ -286,6 +284,8 @@ export default class SwupScrollPlugin extends Plugin {
 		if (!visit.scroll.reset) {
 			return;
 		}
+
+		visit.scroll.scrolledToContent = true;
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getCachedScrollPositions(this.swup.resolveUrl(getCurrentUrl()));
