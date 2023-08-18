@@ -3,12 +3,6 @@ import { Handler, Visit, getCurrentUrl, queryAll } from 'swup';
 // @ts-expect-error
 import Scrl from 'scrl';
 
-declare module 'swup' {
-	export interface VisitScroll {
-
-	}
-}
-
 export type Options = {
 	doScrollingRightAway: boolean;
 	animateScroll: {
