@@ -3,6 +3,30 @@ import { Handler, Visit, getCurrentUrl, queryAll } from 'swup';
 // @ts-expect-error
 import Scrl from 'scrl';
 
+declare module 'swup' {
+	export interface VisitScroll {
+
+	}
+}
+
+declare module 'swup' {
+	export interface Swup {
+		scrollTo?: (offset: number, animate?: boolean) => void;
+	}
+
+	export interface VisitScroll {
+		/** Whether scrolling is animated. Set by Scroll Plugin. */
+		animate?: boolean;
+		/** Whether the scroll position was reset after page load. Set by Scroll Plugin. */
+		scrolledToContent?: boolean;
+	}
+
+	export interface HookDefinitions {
+		'scroll:start': {};
+		'scroll:end': {};
+	}
+}
+
 export type Options = {
 	doScrollingRightAway: boolean;
 	animateScroll: {
@@ -29,21 +53,6 @@ type ScrollPositionsCacheEntry = {
 };
 
 type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
-
-declare module 'swup' {
-	export interface Swup {
-		scrollTo?: (offset: number, animate: boolean) => void;
-	}
-
-	export interface VisitScroll {
-		scrolledToContent?: boolean;
-	}
-
-	export interface HookDefinitions {
-		'scroll:start': {};
-		'scroll:end': {};
-	}
-}
 
 /**
  * Scroll Plugin
@@ -230,6 +239,7 @@ export default class SwupScrollPlugin extends Plugin {
 		const scrollTarget = visit.scroll.target || visit.to.hash;
 
 		visit.scroll.scrolledToContent = false;
+		visit.scroll.animate = this.shouldAnimate('betweenPages');
 
 		if (this.options.doScrollingRightAway && !scrollTarget) {
 			visit.scroll.scrolledToContent = true;
@@ -258,7 +268,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// Try scrolling to a given anchor
 		const scrollTarget = visit.scroll.target || visit.to.hash;
-		if (this.maybeScrollToAnchor(scrollTarget, this.shouldAnimate('betweenPages'))) {
+		if (this.maybeScrollToAnchor(scrollTarget, visit.scroll.animate)) {
 			return;
 		}
 
@@ -272,7 +282,7 @@ export default class SwupScrollPlugin extends Plugin {
 		const top = scrollPositions?.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
-		requestAnimationFrame(() => this.swup.scrollTo?.(top, this.shouldAnimate('betweenPages')));
+		requestAnimationFrame(() => this.swup.scrollTo?.(top, visit.scroll.animate));
 	};
 
 	/**
