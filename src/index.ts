@@ -260,11 +260,7 @@ export default class SwupScrollPlugin extends Plugin {
 		// Conditions for scrolling before content replace:
 		// - scroll is animated (otherwise the effect is useless)
 		// - no scroll target is defined (needs to wait until new content is there)
-		if (
-			visit.scroll.animate &&
-			this.options.doScrollingRightAway &&
-			!scrollTarget
-		) {
+		if (visit.scroll.animate && this.options.doScrollingRightAway && !scrollTarget) {
 			this.doScrollingBetweenPages(visit);
 		}
 	};
@@ -375,5 +371,4 @@ export default class SwupScrollPlugin extends Plugin {
 			el.scrollLeft = scrollPosition.left;
 		});
 	}
-
 }
