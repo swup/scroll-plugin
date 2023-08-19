@@ -256,7 +256,15 @@ export default class SwupScrollPlugin extends Plugin {
 		this.cacheScrollPositions(visit.from.url);
 
 		const scrollTarget = visit.scroll.target ?? visit.to.hash;
-		if (this.options.doScrollingRightAway && !scrollTarget) {
+
+		// Conditions for scrolling before content replace:
+		// - scroll is animated (otherwise the effect is useless)
+		// - no scroll target is defined (needs to wait until new content is there)
+		if (
+			visit.scroll.animate &&
+			this.options.doScrollingRightAway &&
+			!scrollTarget
+		) {
 			this.doScrollingBetweenPages(visit);
 		}
 	};
