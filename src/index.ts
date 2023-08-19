@@ -121,7 +121,8 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// scroll to the top of the page when a visit starts, before replacing the content
-		this.on('visit:start', this.onVisitStart);
+		this.before('visit:start', this.onBeforeVisitStart, { priority: -1 });
+		this.on('visit:start', this.onVisitStart, { priority: 1 });
 
 		// scroll to the top or target element after replacing the content
 		this.replace('content:scroll', this.handleScrollToContent);
@@ -240,14 +241,19 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
+	 * Prepare scrolling before visit:start hook
+	 */
+	onBeforeVisitStart: Handler<'visit:start'> = (visit) => {
+		visit.scroll.scrolledToContent = false;
+		visit.scroll.animate = this.shouldAnimate('betweenPages');
+	};
+
+	/**
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart: Handler<'visit:start'> = (visit) => {
 		this.maybeResetScrollPositions(visit);
 		this.cacheScrollPositions(visit.from.url);
-
-		visit.scroll.scrolledToContent = false;
-		visit.scroll.animate = this.shouldAnimate('betweenPages');
 
 		const scrollTarget = visit.scroll.target ?? visit.to.hash;
 		if (this.options.doScrollingRightAway && !scrollTarget) {
@@ -285,14 +291,14 @@ export default class SwupScrollPlugin extends Plugin {
 			return;
 		}
 
-		visit.scroll.scrolledToContent = true;
-
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getCachedScrollPositions(visit.to.url);
 		const top = scrollPositions?.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
 		requestAnimationFrame(() => this.swup.scrollTo?.(top, visit.scroll.animate));
+
+		visit.scroll.scrolledToContent = true;
 	};
 
 	/**
