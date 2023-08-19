@@ -288,7 +288,7 @@ export default class SwupScrollPlugin extends Plugin {
 		visit.scroll.scrolledToContent = true;
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
-		const scrollPositions = this.getCachedScrollPositions(this.swup.resolveUrl(getCurrentUrl()));
+		const scrollPositions = this.getCachedScrollPositions(visit.to.url);
 		const top = scrollPositions?.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
@@ -302,10 +302,10 @@ export default class SwupScrollPlugin extends Plugin {
 	maybeResetScrollPositions = (visit: Visit): void => {
 		const { url } = visit.to;
 		const { el } = visit.trigger;
-
-		if (el && this.options.shouldResetScrollPosition(el)) {
-			this.resetScrollPositions(url);
+		if (el && !this.options.shouldResetScrollPosition(el)) {
+			return;
 		}
+		this.resetScrollPositions(url);
 	};
 
 	/**
