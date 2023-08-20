@@ -270,8 +270,8 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart: Handler<'visit:start'> = (visit) => {
-		this.maybeResetScrollPositions(visit);
 		this.cacheScrollPositions(visit.from.url);
+		this.maybeResetScrollPositions(visit);
 
 		const scrollTarget = visit.scroll.target ?? visit.to.hash;
 
