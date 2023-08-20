@@ -6,6 +6,7 @@ A [swup](https://swup.js.org) plugin for customizable smooth scrolling.
 - Animates scroll position between page visits
 - Animates scrolling to anchors
 - Define a custom offset for scroll positions
+- Emulate scroll target selector
 
 ## Installation
 
@@ -115,6 +116,27 @@ Customize how the scroll target is found on the page. Defaults to standard brows
 }
 ```
 
+### markScrollTarget
+
+Due to [certain limitations](https://github.com/whatwg/html/issues/639) of the History API,
+the [`:target` CSS pseudo-class](https://developer.mozilla.org/en-US/docs/Web/CSS/:target) stops
+working on sites that push their own history entries, which includes any site using swup. Enabling
+this option provides an alternative way of styling the current target element.
+
+Navigating to the URL `/index.html#section2` will make the following element the target element:
+
+```html
+<section id="section2">Example</section>
+```
+
+To highlight the current target element, use the `data-swup-scroll-target` attribute for styling:
+
+```css
+[data-swup-scroll-target] {
+  outline: 5px auto blue;
+}
+```
+
 ### Offset
 
 Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
@@ -171,6 +193,7 @@ new SwupScrollPlugin({
   scrollFriction: 0.3,
   scrollAcceleration: 0.04,
   getAnchorElement: null,
+  markScrollTarget: false,
   offset: 0,
   scrollContainers: `[data-swup-scroll-container]`,
   shouldResetScrollPosition: (link) => true
