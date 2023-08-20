@@ -32,10 +32,13 @@ type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
-		scrollTo?: (offset: number, animate: boolean) => void;
+		scrollTo?: (offset: number, animate?: boolean) => void;
 	}
 
 	export interface VisitScroll {
+		/** Whether scrolling is animated. Set by Scroll Plugin. */
+		animate?: boolean;
+		/** Whether the scroll position was reset after page load. Set by Scroll Plugin. */
 		scrolledToContent?: boolean;
 	}
 
@@ -118,15 +121,18 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// scroll to the top of the page when a visit starts, before replacing the content
-		this.on('visit:start', this.onVisitStart);
+		this.before('visit:start', this.onBeforeVisitStart, { priority: -1 });
+		this.on('visit:start', this.onVisitStart, { priority: 1 });
 
 		// scroll to the top or target element after replacing the content
-		this.replace('content:scroll', this.onScrollToContent);
+		this.replace('content:scroll', this.handleScrollToContent);
 
-		// scroll to the top of the page
+		// scroll to the top of the same page
+		this.before('link:self', this.onBeforeLinkToSelf, { priority: -1 });
 		this.replace('scroll:top', this.handleScrollToTop);
 
 		// scroll to an anchor on the same page
+		this.before('link:anchor', this.onBeforeLinkToAnchor, { priority: -1 });
 		this.replace('scroll:anchor', this.handleScrollToAnchor);
 	}
 
@@ -181,18 +187,32 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
+	 * Store scroll animation status in visit object before scrolling up
+	 */
+	onBeforeLinkToSelf: Handler<'link:self'> = (visit) => {
+		visit.scroll.animate = this.shouldAnimate('samePage');
+	};
+
+	/**
 	 * Scroll to top on `scroll:top` hook
 	 */
-	handleScrollToTop: Handler<'scroll:top'> = () => {
-		this.swup.scrollTo?.(0, this.shouldAnimate('samePage'));
+	handleScrollToTop: Handler<'scroll:top'> = (visit) => {
+		this.swup.scrollTo?.(0, visit.scroll.animate);
 		return true;
+	};
+
+	/**
+	 * Store scroll animation status in visit object before scrolling to anchor
+	 */
+	onBeforeLinkToAnchor: Handler<'link:anchor'> = (visit) => {
+		visit.scroll.animate = this.shouldAnimate('samePageWithHash');
 	};
 
 	/**
 	 * Scroll to anchor on `scroll:anchor` hook
 	 */
 	handleScrollToAnchor: Handler<'scroll:anchor'> = (visit, { hash }) => {
-		return this.maybeScrollToAnchor(hash, this.shouldAnimate('samePageWithHash'));
+		return this.maybeScrollToAnchor(hash, visit.scroll.animate);
 	};
 
 	/**
@@ -221,18 +241,26 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
+	 * Prepare scrolling before visit:start hook
+	 */
+	onBeforeVisitStart: Handler<'visit:start'> = (visit) => {
+		visit.scroll.scrolledToContent = false;
+		visit.scroll.animate = this.shouldAnimate('betweenPages');
+	};
+
+	/**
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart: Handler<'visit:start'> = (visit) => {
 		this.maybeResetScrollPositions(visit);
 		this.cacheScrollPositions(visit.from.url);
 
-		const scrollTarget = visit.scroll.target || visit.to.hash;
+		const scrollTarget = visit.scroll.target ?? visit.to.hash;
 
-		visit.scroll.scrolledToContent = false;
-
-		if (this.options.doScrollingRightAway && !scrollTarget) {
-			visit.scroll.scrolledToContent = true;
+		// Conditions for scrolling before content replace:
+		// - scroll is animated (otherwise the effect is useless)
+		// - no scroll target is defined (needs to wait until new content is there)
+		if (visit.scroll.animate && this.options.doScrollingRightAway && !scrollTarget) {
 			this.doScrollingBetweenPages(visit);
 		}
 	};
@@ -240,7 +268,7 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Check whether to scroll in `content:scroll` hook
 	 */
-	onScrollToContent: Handler<'content:scroll'> = (visit) => {
+	handleScrollToContent: Handler<'content:scroll'> = (visit) => {
 		if (!visit.scroll.scrolledToContent) {
 			this.doScrollingBetweenPages(visit);
 		}
@@ -257,8 +285,8 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 
 		// Try scrolling to a given anchor
-		const scrollTarget = visit.scroll.target || visit.to.hash;
-		if (this.maybeScrollToAnchor(scrollTarget, this.shouldAnimate('betweenPages'))) {
+		const scrollTarget = visit.scroll.target ?? visit.to.hash;
+		if (scrollTarget && this.maybeScrollToAnchor(scrollTarget, visit.scroll.animate)) {
 			return;
 		}
 
@@ -272,7 +300,9 @@ export default class SwupScrollPlugin extends Plugin {
 		const top = scrollPositions?.window?.top || 0;
 
 		// Give possible JavaScript time to execute before scrolling
-		requestAnimationFrame(() => this.swup.scrollTo?.(top, this.shouldAnimate('betweenPages')));
+		requestAnimationFrame(() => this.swup.scrollTo?.(top, visit.scroll.animate));
+
+		visit.scroll.scrolledToContent = true;
 	};
 
 	/**
@@ -341,5 +371,4 @@ export default class SwupScrollPlugin extends Plugin {
 			el.scrollLeft = scrollPosition.left;
 		});
 	}
-
 }
