@@ -1,5 +1,5 @@
 import Plugin from '@swup/plugin';
-import { Handler, Visit, getCurrentUrl, queryAll } from 'swup';
+import { Handler, Visit, queryAll } from 'swup';
 // @ts-expect-error
 import Scrl from 'scrl';
 
@@ -16,6 +16,7 @@ export type Options = {
 	offset: number | ((el: Element) => number);
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
+	markScrollTarget?: boolean;
 };
 
 type ScrollPosition = {
@@ -70,7 +71,8 @@ export default class SwupScrollPlugin extends Plugin {
 		getAnchorElement: undefined,
 		offset: 0,
 		scrollContainers: `[data-swup-scroll-container]`,
-		shouldResetScrollPosition: () => true
+		shouldResetScrollPosition: () => true,
+		markScrollTarget: false
 	};
 
 	options: Options;
@@ -120,6 +122,19 @@ export default class SwupScrollPlugin extends Plugin {
 			window.history.scrollRestoration = 'manual';
 		}
 
+		/**
+		 * Mark the current scroll target element with a `data-swup-scroll-target` attribute
+		 */
+		this.updateScrollTarget = this.updateScrollTarget.bind(this);
+		if (this.options.markScrollTarget) {
+			window.addEventListener('popstate', this.updateScrollTarget);
+			window.addEventListener('hashchange', this.updateScrollTarget);
+			this.on('page:view', this.updateScrollTarget);
+			this.on('link:anchor', this.updateScrollTarget);
+			this.on('link:self', this.updateScrollTarget);
+			this.updateScrollTarget();
+		}
+
 		// scroll to the top of the page when a visit starts, before replacing the content
 		this.before('visit:start', this.onBeforeVisitStart, { priority: -1 });
 		this.on('visit:start', this.onVisitStart, { priority: 1 });
@@ -145,6 +160,9 @@ export default class SwupScrollPlugin extends Plugin {
 		if (this.previousScrollRestoration) {
 			window.history.scrollRestoration = this.previousScrollRestoration;
 		}
+
+		window.removeEventListener('popstate', this.updateScrollTarget);
+		window.removeEventListener('hashchange', this.updateScrollTarget);
 
 		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
@@ -370,5 +388,20 @@ export default class SwupScrollPlugin extends Plugin {
 			el.scrollTop = scrollPosition.top;
 			el.scrollLeft = scrollPosition.left;
 		});
+	}
+
+	updateScrollTarget(): void {
+		const { hash } = window.location;
+		const currentTarget = document.querySelector('[data-swup-scroll-target]');
+		let newTarget = this.getAnchorElement(hash);
+		if (newTarget instanceof HTMLBodyElement) {
+			// Special case: '#top' fragment returns <body> element
+			newTarget = null;
+		}
+		if (currentTarget === newTarget) {
+			return;
+		}
+		currentTarget?.removeAttribute('data-swup-scroll-target');
+		newTarget?.setAttribute('data-swup-scroll-target', '');
 	}
 }
