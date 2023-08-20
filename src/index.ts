@@ -345,6 +345,8 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Stores the scroll positions for the current URL
 	 */
 	cacheScrollPositions(url: string): void {
+		const cacheKey = this.swup.resolveUrl(url);
+
 		// retrieve the current scroll position for all containers
 		const containers = queryAll(this.options.scrollContainers).map((el) => ({
 			top: el.scrollTop,
@@ -357,7 +359,7 @@ export default class SwupScrollPlugin extends Plugin {
 			containers
 		};
 
-		this.cachedScrollPositions[url] = positions;
+		this.cachedScrollPositions[cacheKey] = positions;
 	}
 
 	/**
