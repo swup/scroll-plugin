@@ -126,9 +126,14 @@ export default class SwupScrollPlugin extends Plugin {
 		 * Mark the current scroll target element with a `data-swup-scroll-target` attribute
 		 */
 		this.updateScrollTarget = this.updateScrollTarget.bind(this);
-		this.on('page:view', this.updateScrollTarget);
-		window.addEventListener('popstate', this.updateScrollTarget);
-		window.addEventListener('hashchange', this.updateScrollTarget);
+		if (this.options.markScrollTarget) {
+			window.addEventListener('popstate', this.updateScrollTarget);
+			window.addEventListener('hashchange', this.updateScrollTarget);
+			this.on('page:view', this.updateScrollTarget);
+			this.on('link:anchor', this.updateScrollTarget);
+			this.on('link:self', this.updateScrollTarget);
+			this.updateScrollTarget();
+		}
 
 		// scroll to the top of the page when a visit starts, before replacing the content
 		this.before('visit:start', this.onBeforeVisitStart, { priority: -1 });
@@ -388,7 +393,11 @@ export default class SwupScrollPlugin extends Plugin {
 	updateScrollTarget(): void {
 		const { hash } = window.location;
 		const currentTarget = document.querySelector('[data-swup-scroll-target]');
-		const newTarget = this.getAnchorElement(hash);
+		let newTarget = this.getAnchorElement(hash);
+		if (newTarget instanceof HTMLBodyElement) {
+			// Special case: '#top' fragment returns <body> element
+			newTarget = null;
+		}
 		if (currentTarget === newTarget) {
 			return;
 		}
