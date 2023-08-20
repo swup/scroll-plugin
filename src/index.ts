@@ -324,12 +324,17 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Resets cached scroll positions for visits with a trigger element,
-	 * where shouldResetScrollPosition returns true for that trigger
+	 * Reset cached scroll positions. Do not reset if:
+	 * - the visit is a history visit
+	 * - the visit is triggered by a link and shouldResetScrollPosition(link) returns false
 	 */
 	maybeResetScrollPositions = (visit: Visit): void => {
+		const { popstate } = visit.history;
 		const { url } = visit.to;
 		const { el } = visit.trigger;
+		if (popstate) {
+			return;
+		}
 		if (el && !this.options.shouldResetScrollPosition(el)) {
 			return;
 		}
