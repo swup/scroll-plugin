@@ -2,6 +2,12 @@
 
 <!-- ## [Unreleased] -->
 
+## [3.2.0] - 2023-08-20
+
+- Allow controlling scroll animation in `visit.scroll.animate`
+- Fix scrolling before animation
+- Fix scroll position reset on API visits
+
 ## [3.1.1] - 2023-08-10
 
 - Port to typescript
@@ -60,8 +66,9 @@
 
 - Initial release
 
-[Unreleased]: https://github.com/swup/scroll-plugin/compare/3.1.1...HEAD
+[Unreleased]: https://github.com/swup/scroll-plugin/compare/3.2.0...HEAD
 
+[3.2.0]: https://github.com/swup/scroll-plugin/releases/tag/3.2.0
 [3.1.1]: https://github.com/swup/scroll-plugin/releases/tag/3.1.1
 [3.1.0]: https://github.com/swup/scroll-plugin/releases/tag/3.1.0
 [3.0.0]: https://github.com/swup/scroll-plugin/releases/tag/3.0.0
