@@ -270,8 +270,8 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Check whether to scroll in `visit:start` hook
 	 */
 	onVisitStart: Handler<'visit:start'> = (visit) => {
-		this.maybeResetScrollPositions(visit);
 		this.cacheScrollPositions(visit.from.url);
+		this.maybeResetScrollPositions(visit);
 
 		const scrollTarget = visit.scroll.target ?? visit.to.hash;
 
@@ -324,12 +324,17 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Resets cached scroll positions for visits with a trigger element,
-	 * where shouldResetScrollPosition returns true for that trigger
+	 * Reset cached scroll positions. Do not reset if:
+	 * - the visit is a history visit
+	 * - the visit is triggered by a link and shouldResetScrollPosition(link) returns false
 	 */
 	maybeResetScrollPositions = (visit: Visit): void => {
+		const { popstate } = visit.history;
 		const { url } = visit.to;
 		const { el } = visit.trigger;
+		if (popstate) {
+			return;
+		}
 		if (el && !this.options.shouldResetScrollPosition(el)) {
 			return;
 		}
@@ -340,6 +345,8 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Stores the scroll positions for the current URL
 	 */
 	cacheScrollPositions(url: string): void {
+		const cacheKey = this.swup.resolveUrl(url);
+
 		// retrieve the current scroll position for all containers
 		const containers = queryAll(this.options.scrollContainers).map((el) => ({
 			top: el.scrollTop,
@@ -352,7 +359,7 @@ export default class SwupScrollPlugin extends Plugin {
 			containers
 		};
 
-		this.cachedScrollPositions[url] = positions;
+		this.cachedScrollPositions[cacheKey] = positions;
 	}
 
 	/**
