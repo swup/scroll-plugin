@@ -2,6 +2,10 @@
 
 <!-- ## [Unreleased] -->
 
+## [3.3.0] - 2023-08-21
+
+- Emulate CSS `:target` selector as `[data-swup-scroll-target]`
+
 ## [3.2.1] - 2023-08-21
 
 - Fix scroll position reset on history visits
@@ -70,8 +74,9 @@
 
 - Initial release
 
-[Unreleased]: https://github.com/swup/scroll-plugin/compare/3.2.1...HEAD
+[Unreleased]: https://github.com/swup/scroll-plugin/compare/3.3.0...HEAD
 
+[3.3.0]: https://github.com/swup/scroll-plugin/releases/tag/3.3.0
 [3.2.1]: https://github.com/swup/scroll-plugin/releases/tag/3.2.1
 [3.2.0]: https://github.com/swup/scroll-plugin/releases/tag/3.2.0
 [3.1.1]: https://github.com/swup/scroll-plugin/releases/tag/3.1.1
