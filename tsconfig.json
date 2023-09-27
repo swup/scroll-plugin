@@ -1,12 +1,10 @@
 {
   "include": ["src"],
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "es2022",
 		"module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDirs": ["./src"],
     "resolveJsonModule": true,
-    "allowJs": true,
     "outDir": "./dist",
     "esModuleInterop": true,
     "strict": true,
