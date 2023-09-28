@@ -44,8 +44,8 @@ declare module 'swup' {
 	}
 
 	export interface HookDefinitions {
-		'scroll:start': {};
-		'scroll:end': {};
+		'scroll:start': undefined;
+		'scroll:end': undefined;
 	}
 }
 
@@ -94,9 +94,9 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// Initialize Scrl lib for smooth animations
 		this.scrl = new Scrl({
-			onStart: () => swup.hooks.callSync('scroll:start'),
-			onEnd: () => swup.hooks.callSync('scroll:end'),
-			onCancel: () => swup.hooks.callSync('scroll:end'),
+			onStart: () => swup.hooks.callSync('scroll:start', undefined),
+			onEnd: () => swup.hooks.callSync('scroll:end', undefined),
+			onCancel: () => swup.hooks.callSync('scroll:end', undefined),
 			friction: this.options.scrollFriction,
 			acceleration: this.options.scrollAcceleration
 		});
@@ -106,9 +106,9 @@ export default class SwupScrollPlugin extends Plugin {
 			if (animate) {
 				this.scrl.scrollTo(offset);
 			} else {
-				swup.hooks.callSync('scroll:start');
+				swup.hooks.callSync('scroll:start', undefined);
 				window.scrollTo(0, offset);
-				swup.hooks.callSync('scroll:end');
+				swup.hooks.callSync('scroll:end', undefined);
 			}
 		};
 
