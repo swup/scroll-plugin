@@ -44,8 +44,8 @@ declare module 'swup' {
 	}
 
 	export interface HookDefinitions {
-		'scroll:start'?: {};
-		'scroll:end'?: {};
+		'scroll:start': undefined;
+		'scroll:end': undefined;
 	}
 }
 
