@@ -221,7 +221,7 @@ swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 
 ## Overwriting `swup.scrollTo`
 
-You can overwrite the scroll function with your own implementation. Here's an example using [GSAP's](https://greensock.com/docs/v3/) [ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin):
+You can overwrite the scroll function with your own implementation. This way, you can gain full control over what (`Window` or `HTMLElement`?) and how (`duration`, `easing`) you animate scroll positions. Here's an example using [GSAP's](https://greensock.com/docs/v3/) [ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin):
 
 ```js
 
