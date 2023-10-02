@@ -218,3 +218,55 @@ The plugin adds two new hooks `scroll:start` and `scroll:end` :
 swup.hooks.on('scroll:start', () => console.log('Swup started scrolling'));
 swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 ```
+
+## Overwriting `swup.scrollTo`
+
+You can overwrite the scroll function with your own implementation. This way, you can gain full control over how you animate your scroll positions. Here's an example using [GSAP's](https://greensock.com/docs/v3/) [ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin):
+
+```js
+
+import Swup from 'swup';
+import SwupScrollPlugin from '@swup/scroll-plugin';
+
+import { gsap } from 'gsap';
+import ScrollToPlugin from 'gsap/ScrollToPlugin';
+gsap.registerPlugin(ScrollToPlugin);
+
+const swup = new Swup({
+	plugins: [new SwupScrollPlugin()]
+});
+
+/**
+ * Overwrite swup's scrollTo function
+ */
+swup.scrollTo = (offsetY, animate = true) => {
+	if (!animate) {
+		swup.hooks.callSync('scroll:start', undefined);
+		window.scrollTo(0, offsetY);
+		swup.hooks.callSync('scroll:end', undefined);
+		return;
+	}
+
+	/**
+	 * Use GSAP ScrollToPlugin for animated scrolling
+	 * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
+	 */
+	gsap.to(window, {
+		duration: 0.8,
+		scrollTo: offsetY,
+		ease: 'power4.inOut',
+		autoKill: true,
+		onStart: () => {
+			swup.hooks.callSync('scroll:start', undefined);
+		},
+		onComplete: () => {
+			swup.hooks.callSync('scroll:end', undefined);
+		},
+		onAutoKill: () => {
+			swup.hooks.callSync('scroll:end', undefined);
+		},
+	});
+
+};
+
+```
