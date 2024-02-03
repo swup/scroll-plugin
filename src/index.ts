@@ -92,11 +92,14 @@ export default class SwupScrollPlugin extends Plugin {
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
 
+		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
+		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
+
 		// Initialize Scrl lib for smooth animations
 		this.scrl = new Scrl({
-			onStart: () => swup.hooks.callSync('scroll:start', undefined),
-			onEnd: () => swup.hooks.callSync('scroll:end', undefined),
-			onCancel: () => swup.hooks.callSync('scroll:end', undefined),
+			onStart: () => swup.hooks.callSync('scroll:start', visit, undefined),
+			onEnd: () => swup.hooks.callSync('scroll:end', visit, undefined),
+			onCancel: () => swup.hooks.callSync('scroll:end', visit, undefined),
 			friction: this.options.scrollFriction,
 			acceleration: this.options.scrollAcceleration
 		});
@@ -106,9 +109,9 @@ export default class SwupScrollPlugin extends Plugin {
 			if (animate) {
 				this.scrl.scrollTo(offset);
 			} else {
-				swup.hooks.callSync('scroll:start', undefined);
+				swup.hooks.callSync('scroll:start', visit, undefined);
 				window.scrollTo(0, offset);
-				swup.hooks.callSync('scroll:end', undefined);
+				swup.hooks.callSync('scroll:end', visit, undefined);
 			}
 		};
 
