@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.3.2] - 2024-02-05
+
+- Pass temporary visit into scroll hooks
+
 ## [3.3.1] - 2023-09-27
 
 - Use `@swup/cli` for bundling
@@ -76,6 +80,7 @@
 
 - Initial release
 
+[3.3.2]: https://github.com/swup/scroll-plugin/releases/tag/3.3.2
 [3.3.1]: https://github.com/swup/scroll-plugin/releases/tag/3.3.1
 [3.3.0]: https://github.com/swup/scroll-plugin/releases/tag/3.3.0
 [3.2.1]: https://github.com/swup/scroll-plugin/releases/tag/3.2.1
