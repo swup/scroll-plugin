@@ -1,7 +1,7 @@
 {
   "name": "@swup/scroll-plugin",
   "amdName": "SwupScrollPlugin",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "A swup plugin for customizable smooth scrolling",
   "type": "module",
   "source": "src/index.ts",
@@ -52,7 +52,7 @@
     "@swup/plugin": "^4.0.0",
     "scrl": "^2.0.0"
   },
-	"devDependencies": {
+  "devDependencies": {
     "@swup/cli": "^5.0.1"
   },
   "peerDependencies": {
