@@ -86,15 +86,17 @@ For finer control, you can pass an object:
 ```javascript
 // Using a simple boolean...
 {
-  animateScroll: !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  animateScroll: !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 // ...or this little monster, with full control over everything:
 {
-  animateScroll: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : {
-    betweenPages: true,
-    samePageWithHash: true,
-    samePage: true
-  }
+  animateScroll: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? false
+    : {
+        betweenPages: true,
+        samePageWithHash: true,
+        samePage: true
+      };
 }
 ```
 
@@ -106,9 +108,9 @@ Customize how the scroll target is found on the page. Defaults to standard brows
 {
   // Use a custom data attribute instead of id
   getAnchorElement: (hash) => {
-    hash = hash.replace('#', '')
-    return document.querySelector(`[data-scroll-target="${hash}"]`)
-  }
+    hash = hash.replace('#', '');
+    return document.querySelector(`[data-scroll-target="${hash}"]`);
+  };
 }
 ```
 
@@ -159,7 +161,7 @@ overflowing containers.
 ```js
 {
   // Always restore the scroll position of overflowing tables and sidebars
-  scrollContainers: '.overflowing-table, .overflowing-sidebar'
+  scrollContainers: '.overflowing-table, .overflowing-sidebar';
 }
 ```
 
@@ -172,7 +174,7 @@ recorded for that page. See [Reset vs. restore](#reset-vs-restore) for an explan
 ```js
 {
   // Don't scroll back up for custom back-links, mimicking the browser back button
-  shouldResetScrollPosition: (link) => !link.matches('.backlink')
+  shouldResetScrollPosition: (link) => !link.matches('.backlink');
 }
 ```
 
@@ -218,7 +220,6 @@ swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 You can overwrite the scroll function with your own implementation. This way, you can gain full control over how you animate your scroll positions. Here's an example using [GSAP's](https://greensock.com/docs/v3/) [ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin):
 
 ```js
-
 import Swup from 'swup';
 import SwupScrollPlugin from '@swup/scroll-plugin';
 
@@ -227,40 +228,30 @@ import ScrollToPlugin from 'gsap/ScrollToPlugin';
 gsap.registerPlugin(ScrollToPlugin);
 
 const swup = new Swup({
-	plugins: [new SwupScrollPlugin()]
+  plugins: [new SwupScrollPlugin()]
 });
 
 /**
- * Overwrite swup's scrollTo function
+ * Use GSAP ScrollToPlugin for animated scrolling
+ * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
  */
-swup.scrollTo = (offsetY, animate = true) => {
-	if (!animate) {
-		swup.hooks.callSync('scroll:start', undefined);
-		window.scrollTo(0, offsetY);
-		swup.hooks.callSync('scroll:end', undefined);
-		return;
-	}
-
-	/**
-	 * Use GSAP ScrollToPlugin for animated scrolling
-	 * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
-	 */
-	gsap.to(window, {
-		duration: 0.8,
-		scrollTo: offsetY,
-		ease: 'power4.inOut',
-		autoKill: true,
-		onStart: () => {
-			swup.hooks.callSync('scroll:start', undefined);
-		},
-		onComplete: () => {
-			swup.hooks.callSync('scroll:end', undefined);
-		},
-		onAutoKill: () => {
-			swup.hooks.callSync('scroll:end', undefined);
-		},
-	});
-
+swup.scrollTo = (offset, animate, scrollingElement) => {
+  gsap.to(scrollingElement ?? window, {
+    duration: animate ? 0.6 : 0,
+    ease: 'power4.out',
+    scrollTo: {
+      y: offset,
+      autoKill: !isTouch(),
+      onAutoKill: () => {
+        swup.hooks.callSync('scroll:end', undefined);
+      }
+    },
+    onStart: () => {
+      swup.hooks.callSync('scroll:start', undefined);
+    },
+    onComplete: () => {
+      swup.hooks.callSync('scroll:end', undefined);
+    }
+  });
 };
-
 ```
