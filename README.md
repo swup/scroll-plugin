@@ -98,10 +98,6 @@ For finer control, you can pass an object:
 }
 ```
 
-### scrollFriction and scrollAcceleration
-
-The animation behavior of the scroll animation can be adjusted by setting `scrollFriction` and `scrollAcceleration`.
-
 ### getAnchorElement
 
 Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).
@@ -190,8 +186,6 @@ new SwupScrollPlugin({
     samePageWithHash: true,
     samePage: true
   },
-  scrollFriction: 0.3,
-  scrollAcceleration: 0.04,
   getAnchorElement: null,
   markScrollTarget: false,
   offset: 0,

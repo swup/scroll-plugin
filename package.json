@@ -49,8 +49,7 @@
     "url": "https://github.com/swup/scroll-plugin.git"
   },
   "dependencies": {
-    "@swup/plugin": "^4.0.0",
-    "scrl": "^2.0.0"
+    "@swup/plugin": "^4.0.0"
   },
   "devDependencies": {
     "@swup/cli": "^5.0.1"
