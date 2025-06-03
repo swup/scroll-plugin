@@ -269,7 +269,9 @@ export default class SwupScrollPlugin extends Plugin {
 
 		const { top: elementTop } = element.getBoundingClientRect();
 		const top = elementTop + scrollingElement.scrollTop - this.getOffset(element);
-		this.swup.scrollTo?.(top, animate, scrollingElement);
+    const maxTop = scrollingElement.scrollHeight - scrollingElement.offsetHeight;
+
+		this.swup.scrollTo?.(Math.min(top, maxTop), animate, scrollingElement);
 
 		return true;
 	}
@@ -432,7 +434,7 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Get the closest parent of an element that can be scrolled.
 	 * Fall back to the Window if not found.
 	 */
-	getClosestScrollingElement(element: Element): Element {
+	getClosestScrollingElement(element: Element): HTMLElement {
 		let parent: HTMLElement | null = element.parentElement;
 
 		while (parent) {
@@ -455,7 +457,7 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Get the root scrolling element
 	 */
 	getRootScrollingElement() {
-		return document.scrollingElement instanceof Element
+		return document.scrollingElement instanceof HTMLElement
 			? document.scrollingElement
 			: document.documentElement;
 	}
