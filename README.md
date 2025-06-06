@@ -237,36 +237,27 @@ const swup = new Swup({
 });
 
 /**
- * Overwrite swup's scrollTo function
+ * Use GSAP ScrollToPlugin for animated scrolling
+ * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
  */
-swup.scrollTo = (offsetY, animate = true) => {
-	if (!animate) {
-		swup.hooks.callSync('scroll:start', undefined);
-		window.scrollTo(0, offsetY);
-		swup.hooks.callSync('scroll:end', undefined);
-		return;
-	}
-
-	/**
-	 * Use GSAP ScrollToPlugin for animated scrolling
-	 * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
-	 */
-	gsap.to(window, {
-		duration: 0.8,
-		scrollTo: offsetY,
-		ease: 'power4.inOut',
-		autoKill: true,
-		onStart: () => {
-			swup.hooks.callSync('scroll:start', undefined);
-		},
-		onComplete: () => {
-			swup.hooks.callSync('scroll:end', undefined);
-		},
-		onAutoKill: () => {
-			swup.hooks.callSync('scroll:end', undefined);
-		},
-	});
-
+swup.scrollTo = (offset, animate, scrollingElement) => {
+  gsap.to(scrollingElement ?? window, {
+    duration: animate ? 0.6 : 0,
+    ease: 'power4.out',
+    scrollTo: {
+      y: offset,
+      autoKill: !isTouch(),
+      onAutoKill: () => {
+        swup.hooks.callSync('scroll:end', undefined);
+      }
+    },
+    onStart: () => {
+      swup.hooks.callSync('scroll:start', undefined);
+    },
+    onComplete: () => {
+      swup.hooks.callSync('scroll:end', undefined);
+    }
+  });
 };
 
 ```

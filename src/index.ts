@@ -1,7 +1,5 @@
 import Plugin from '@swup/plugin';
 import { Handler, Visit, queryAll } from 'swup';
-// @ts-expect-error
-import Scrl from 'scrl';
 
 export type Options = {
 	doScrollingRightAway: boolean;
@@ -10,8 +8,6 @@ export type Options = {
 		samePageWithHash: boolean;
 		samePage: boolean;
 	};
-	scrollFriction: number;
-	scrollAcceleration: number;
 	getAnchorElement?: (hash: string) => Element | null;
 	offset: number | ((el: Element) => number);
 	scrollContainers: `[data-swup-scroll-container]`;
@@ -33,7 +29,7 @@ type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
-		scrollTo?: (offset: number, animate?: boolean) => void;
+		scrollTo?: (offset: number, animate?: boolean, scrollingElement?: Element) => void;
 	}
 
 	export interface VisitScroll {
@@ -57,8 +53,6 @@ export default class SwupScrollPlugin extends Plugin {
 
 	requires = { swup: '>=4.2.0' };
 
-	scrl: any;
-
 	defaults: Options = {
 		doScrollingRightAway: false,
 		animateScroll: {
@@ -66,8 +60,6 @@ export default class SwupScrollPlugin extends Plugin {
 			samePageWithHash: true,
 			samePage: true
 		},
-		scrollFriction: 0.3,
-		scrollAcceleration: 0.04,
 		getAnchorElement: undefined,
 		offset: 0,
 		scrollContainers: `[data-swup-scroll-container]`,
@@ -95,24 +87,44 @@ export default class SwupScrollPlugin extends Plugin {
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
 		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
 
-		// Initialize Scrl lib for smooth animations
-		this.scrl = new Scrl({
-			onStart: () => swup.hooks.callSync('scroll:start', visit, undefined),
-			onEnd: () => swup.hooks.callSync('scroll:end', visit, undefined),
-			onCancel: () => swup.hooks.callSync('scroll:end', visit, undefined),
-			friction: this.options.scrollFriction,
-			acceleration: this.options.scrollAcceleration
-		});
-
 		// Add scrollTo method to swup and animate based on current animateScroll option
-		swup.scrollTo = (offset, animate = true) => {
-			if (animate) {
-				this.scrl.scrollTo(offset);
-			} else {
-				swup.hooks.callSync('scroll:start', visit, undefined);
-				window.scrollTo(0, offset);
-				swup.hooks.callSync('scroll:end', visit, undefined);
-			}
+		swup.scrollTo = (offset: number, animate = true, element?: Element) => {
+			element ??= this.getRootScrollingElement();
+
+			const eventTarget = element instanceof HTMLHtmlElement ? window : element;
+
+			/**
+			 * Dispatch the scroll:end hook upon completion
+			 */
+			eventTarget.addEventListener(
+				'scrollend',
+				() => swup.hooks.callSync('scroll:end', visit, undefined),
+				{ once: true }
+			);
+
+			/**
+			 * Make the scroll cancelable upon user interaction
+			 */
+			eventTarget.addEventListener(
+				'wheel',
+				() => {
+					element.scrollTo({
+						top: element.scrollTop,
+						behavior: 'instant'
+					});
+				},
+				{ once: true }
+			);
+
+			/**
+			 * Dispatch the scroll:start hook
+			 */
+			swup.hooks.callSync('scroll:start', visit, undefined);
+
+			element.scrollTo({
+				top: offset,
+				behavior: animate ? 'smooth' : 'instant'
+			});
 		};
 
 		/**
@@ -169,7 +181,6 @@ export default class SwupScrollPlugin extends Plugin {
 
 		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
-		delete this.scrl;
 	}
 
 	/**
@@ -254,9 +265,13 @@ export default class SwupScrollPlugin extends Plugin {
 			return false;
 		}
 
+		const scrollingElement = this.getClosestScrollingElement(element);
+
 		const { top: elementTop } = element.getBoundingClientRect();
-		const top = elementTop + window.scrollY - this.getOffset(element);
-		this.swup.scrollTo?.(top, animate);
+		const top = elementTop + scrollingElement.scrollTop - this.getOffset(element);
+    const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
+
+		this.swup.scrollTo?.(Math.min(top, maxTop), animate, scrollingElement);
 
 		return true;
 	}
@@ -413,5 +428,37 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 		currentTarget?.removeAttribute('data-swup-scroll-target');
 		newTarget?.setAttribute('data-swup-scroll-target', '');
+	}
+
+	/**
+	 * Get the closest parent of an element that can be scrolled.
+	 * Fall back to the Window if not found.
+	 */
+	getClosestScrollingElement(element: Element): HTMLElement {
+		let parent: HTMLElement | null = element.parentElement;
+
+		while (parent) {
+			const { overflowY } = getComputedStyle(parent);
+			const isScrollable =
+				['auto', 'scroll'].includes(overflowY) && parent.scrollHeight > parent.clientHeight;
+
+			if (isScrollable) {
+				return parent;
+			}
+
+			parent = parent.parentElement;
+		}
+
+		// Fallback: return the root scrolling element
+		return this.getRootScrollingElement();
+	}
+
+	/**
+	 * Get the root scrolling element
+	 */
+	getRootScrollingElement() {
+		return document.scrollingElement instanceof HTMLElement
+			? document.scrollingElement
+			: document.documentElement;
 	}
 }
