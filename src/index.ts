@@ -432,7 +432,6 @@ export default class SwupScrollPlugin extends Plugin {
 
 	/**
 	 * Get the closest parent of an element that can be scrolled.
-	 * Fall back to the Window if not found.
 	 */
 	getClosestScrollingElement(element: Element): HTMLElement {
 		let parent: HTMLElement | null = element.parentElement;
