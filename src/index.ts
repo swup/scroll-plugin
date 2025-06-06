@@ -269,7 +269,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		const { top: elementTop } = element.getBoundingClientRect();
 		const top = elementTop + scrollingElement.scrollTop - this.getOffset(element);
-    const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
+		const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
 
 		this.swup.scrollTo?.(Math.min(top, maxTop), animate, scrollingElement);
 
