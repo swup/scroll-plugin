@@ -9,7 +9,7 @@ export type Options = {
 		samePage: boolean;
 	};
 	getAnchorElement?: (hash: string) => Element | null;
-	offset: number | ((el: Element) => number);
+	offset: number | ((target?: Element, container?: Element) => number);
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
@@ -29,7 +29,7 @@ type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
-		scrollTo?: (offset: number, animate?: boolean, scrollingElement?: Element) => void;
+		scrollTo?: (offset: number, animate?: boolean, scrollContainer?: Element) => void;
 	}
 
 	export interface VisitScroll {
@@ -169,12 +169,14 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (el?: Element): number => {
-		if (!el) return 0;
+	getOffset = (target?: Element, container?: Element): number => {
+		if (!target) return 0;
+
 		// If options.offset is a function, apply and return it
 		if (typeof this.options.offset === 'function') {
-			return parseInt(String(this.options.offset(el)), 10);
+			return parseInt(String(this.options.offset(target, container)), 10);
 		}
+
 		// Otherwise, return the sanitized offset
 		return parseInt(String(this.options.offset), 10);
 	};
@@ -226,13 +228,7 @@ export default class SwupScrollPlugin extends Plugin {
 			return false;
 		}
 
-		const scrollingElement = this.getClosestScrollingElement(element);
-
-		const { top: elementTop } = element.getBoundingClientRect();
-		const top = elementTop + scrollingElement.scrollTop - this.getOffset(element);
-		const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
-
-		this.swup.scrollTo?.(Math.min(top, maxTop), animate, scrollingElement);
+		this.scrollElementIntoView(element, animate);
 
 		return true;
 	}
@@ -395,29 +391,15 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Get the closest parent of an element that can be scrolled.
 	 * Fall back to the Window if not found.
 	 */
-	getClosestScrollingElement(element: Element): HTMLElement {
-		let parent: HTMLElement | null = element.parentElement;
-
-		while (parent) {
-			const { overflowY } = getComputedStyle(parent);
-			const isScrollable =
-				['auto', 'scroll'].includes(overflowY) && parent.scrollHeight > parent.clientHeight;
-
-			if (isScrollable) {
-				return parent;
-			}
-
-			parent = parent.parentElement;
-		}
-
-		// Fallback: return the root scrolling element
-		return this.getRootScrollingElement();
+	getClosestscrollContainer(element: Element): HTMLElement {
+		const scrollableAncestors = this.getAllScrollableAncestors(element);
+		return scrollableAncestors[0] || this.getRootscrollContainer();
 	}
 
 	/**
 	 * Get the root scrolling element
 	 */
-	getRootScrollingElement() {
+	getRootscrollContainer() {
 		return document.scrollingElement instanceof HTMLElement
 			? document.scrollingElement
 			: document.documentElement;
@@ -431,7 +413,7 @@ export default class SwupScrollPlugin extends Plugin {
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
 		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
 
-		element ??= this.getRootScrollingElement();
+		element ??= this.getRootscrollContainer();
 
 		const eventTarget = element instanceof HTMLHtmlElement ? window : element;
 
@@ -467,5 +449,77 @@ export default class SwupScrollPlugin extends Plugin {
 			top: y,
 			behavior: animate ? 'smooth' : 'instant'
 		});
+	}
+
+	/**
+	 * Scroll an element into view by recursively scrolling all scrollable ancestors
+	 * Mimics browser's native scrollIntoView behavior for nested scrollable containers
+	 */
+	scrollElementIntoView(element: Element, animate: boolean = false): void {
+		const scrollableAncestors = this.getAllScrollableAncestors(element);
+
+		// Process from innermost to outermost scrollable container
+		for (const scrollContainer of scrollableAncestors) {
+			const elementRect = element.getBoundingClientRect();
+			const containerRect = scrollContainer.getBoundingClientRect();
+			const scrollOffset = this.getOffset(element, scrollContainer);
+
+			// Calculate the element's position relative to the scrolling container
+			let targetScrollTop = 0;
+
+			if (scrollContainer === this.getRootscrollContainer()) {
+				// For the root element, use the element's position relative to the document
+				// plus current scroll position minus offset
+				targetScrollTop =
+					elementRect.top + window.scrollY - scrollOffset;
+			} else {
+				// For nested containers, calculate relative position
+				const elementTopRelativeToContainer = elementRect.top - containerRect.top;
+				targetScrollTop =
+					scrollContainer.scrollTop +
+					elementTopRelativeToContainer -
+					scrollOffset;
+			}
+
+			// Ensure we don't scroll beyond the maximum possible scroll position
+			const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+			const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
+
+			// Scroll this container
+			this.swup.scrollTo?.(finalScrollTop, animate, scrollContainer);
+		}
+	}
+
+	/**
+	 * Get all scrollable ancestors of an element, from closest to furthest
+	 */
+	getAllScrollableAncestors(element: Element): HTMLElement[] {
+		const scrollableAncestors: HTMLElement[] = [];
+		let parent: HTMLElement | null = element.parentElement;
+
+		while (parent) {
+			const { overflowY, overflowX } = getComputedStyle(parent);
+			const hasVerticalScroll =
+				['auto', 'scroll'].includes(overflowY) && parent.scrollHeight > parent.clientHeight;
+			const hasHorizontalScroll =
+				['auto', 'scroll'].includes(overflowX) && parent.scrollWidth > parent.clientWidth;
+
+			if (hasVerticalScroll || hasHorizontalScroll) {
+				scrollableAncestors.push(parent);
+			}
+
+			parent = parent.parentElement;
+		}
+
+		// Always include the root scrolling element as the final ancestor
+		const rootElement = this.getRootscrollContainer();
+		if (
+			scrollableAncestors.length === 0 ||
+			scrollableAncestors[scrollableAncestors.length - 1] !== rootElement
+		) {
+			scrollableAncestors.push(rootElement);
+		}
+
+		return scrollableAncestors;
 	}
 }
