@@ -84,48 +84,9 @@ export default class SwupScrollPlugin extends Plugin {
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
 
-		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
-		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
-
-		// Add scrollTo method to swup and animate based on current animateScroll option
-		swup.scrollTo = (offset: number, animate = true, element?: Element) => {
-			element ??= this.getRootScrollingElement();
-
-			const eventTarget = element instanceof HTMLHtmlElement ? window : element;
-
-			/**
-			 * Dispatch the scroll:end hook upon completion
-			 */
-			eventTarget.addEventListener(
-				'scrollend',
-				() => swup.hooks.callSync('scroll:end', visit, undefined),
-				{ once: true }
-			);
-
-			/**
-			 * Make the scroll cancelable upon user interaction
-			 */
-			eventTarget.addEventListener(
-				'wheel',
-				() => {
-					element.scrollTo({
-						top: element.scrollTop,
-						behavior: 'instant'
-					});
-				},
-				{ once: true }
-			);
-
-			/**
-			 * Dispatch the scroll:start hook
-			 */
-			swup.hooks.callSync('scroll:start', visit, undefined);
-
-			element.scrollTo({
-				top: offset,
-				behavior: animate ? 'smooth' : 'instant'
-			});
-		};
+		/* Add scrollTo method to swup instance */
+		swup.scrollTo = (y: number, animate = true, element?: Element) =>
+			this.scrollTo(y, animate, element);
 
 		/**
 		 * Disable browser scroll restoration for history visits
@@ -269,7 +230,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		const { top: elementTop } = element.getBoundingClientRect();
 		const top = elementTop + scrollingElement.scrollTop - this.getOffset(element);
-    const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
+		const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
 
 		this.swup.scrollTo?.(Math.min(top, maxTop), animate, scrollingElement);
 
@@ -460,5 +421,51 @@ export default class SwupScrollPlugin extends Plugin {
 		return document.scrollingElement instanceof HTMLElement
 			? document.scrollingElement
 			: document.documentElement;
+	}
+
+	/**
+	 * Scroll to a specific offset, with optional animation.
+	 */
+	scrollTo(y: number, animate = true, element?: Element): void {
+		// Create dummy visit
+		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
+		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
+
+		element ??= this.getRootScrollingElement();
+
+		const eventTarget = element instanceof HTMLHtmlElement ? window : element;
+
+		/**
+		 * Dispatch the scroll:end hook upon completion
+		 */
+		eventTarget.addEventListener(
+			'scrollend',
+			() => this.swup.hooks.callSync('scroll:end', visit, undefined),
+			{ once: true }
+		);
+
+		/**
+		 * Make the scroll cancelable upon user interaction
+		 */
+		eventTarget.addEventListener(
+			'wheel',
+			() => {
+				element.scrollTo({
+					top: element.scrollTop,
+					behavior: 'instant'
+				});
+			},
+			{ once: true }
+		);
+
+		/**
+		 * Dispatch the scroll:start hook
+		 */
+		this.swup.hooks.callSync('scroll:start', visit, undefined);
+
+		element.scrollTo({
+			top: y,
+			behavior: animate ? 'smooth' : 'instant'
+		});
 	}
 }
