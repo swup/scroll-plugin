@@ -23,10 +23,10 @@ const { title, description, noindex, isFrontPage, intro } = Astro.props;
 		description={description ?? SITE_DESCRIPTION}
 		noindex={noindex}
 	/>
-	<body>
+	<body class="p-4 py-8">
 		<div id="swup">
-			<header>
-				<h1 class="site-title">{SITE_TITLE}</h1>
+			<header class="mb-8">
+				<h1 class="is-h1">{SITE_TITLE}</h1>
 				<slot name="after-header" />
 				<nav>
 					<ul class="navlist">

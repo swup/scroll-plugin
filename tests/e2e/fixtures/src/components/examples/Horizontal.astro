@@ -1,34 +1,6 @@
 ---
 import Tiles from "./Tiles.astro";
 ---
-<div class="wrap wrap--horizontal">
-  <div class="pane pane--horizontal">
-    <div class="scroller --horizontal" data-testid="first-horizontal">
-      <Tiles amount={20} direction="horizontal" uniqueid="first-horizontal" />
-    </div>
-  </div>
-  <div class="pane pane--horizontal">
-    <div class="scroller --horizontal" data-testid="second-horizontal">
-      <Tiles amount={60} direction="horizontal" uniqueid="second-horizontal" />
-    </div>
-  </div>
-  <div class="pane pane--horizontal">
-    <div class="scroller --horizontal" data-testid="third-horizontal">
-      <Tiles amount={40} direction="horizontal" uniqueid="third-horizontal" />
-    </div>
-  </div>
+<div class="w-full overflow-x-auto border --horizontal" data-testid="first-horizontal">
+  <Tiles amount={20} direction="horizontal" uniqueid="first-horizontal" />
 </div>
-
-<style>
-  .pane + .pane:after {
-    content: "";
-    position: absolute;
-    top: 0;
-    width: 100%;
-    border-top: var(--border-style);
-    margin-top: -1px;
-  }
-  .scroller {
-    overflow: auto;
-  }
-</style>

@@ -21,7 +21,7 @@ const getLabel = (index: number): string => {
 };
 ---
 
-<ul class="border tiles" class:list={[`tiles--${direction}`]}>
+<ul class="tiles" class:list={[`tiles--${direction}`]}>
   {
     [...Array(amount)].map((_data, index) => (
       <li
