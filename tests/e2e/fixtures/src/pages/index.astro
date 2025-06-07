@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import VerticalExample from '../components/examples/Vertical.astro';
+import HorizontalExample from '../components/examples/Horizontal.astro';
+import BothDirectionsExample from '../components/examples/BothDirections.astro';
+import { ArrowRightIcon } from 'astro-feather';
+import { SITE_DESCRIPTION } from '../consts.ts';
+---
+
+<Layout isFrontPage={true}>
+	<p class="is-h2" slot="after-header">{SITE_DESCRIPTION}</p>
+	<section id="vertical">
+		<header class="section_header">
+			<h2 class="is-h2"><a href="#vertical">Vertical</a></h2>
+		</header>
+		<VerticalExample />
+	</section>
+
+	<section id="horizontal">
+		<header class="section_header">
+			<h2 class="is-h2"><a href="#horizontal">Horizontal</a></h2>
+		</header>
+		<HorizontalExample />
+	</section>
+
+	<section id="both-directions">
+		<header class="section_header">
+			<h2 class="is-h2"><a href="#both-directions">Both Directions</a></h2>
+		</header>
+		<BothDirectionsExample />
+	</section>
+
+	<section id="footer">
+		<p>This is the footer</p>
+	</section>
+</Layout>
+
+<style>
+	#footer {
+		margin-block: 5%;
+	}
+</style>

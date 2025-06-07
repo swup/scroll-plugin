@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+:root {
+  --saturation: 100%;
+  --lightness: 80%;
+}

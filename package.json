@@ -24,7 +24,16 @@
     "dev": "swup package:dev",
     "lint": "swup package:lint",
     "format": "swup package:format",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "fixtures:dev": "astro dev --root tests/e2e/fixtures",
+    "fixtures:build": "astro build --root tests/e2e/fixtures",
+    "fixtures:serve": "astro build --root tests/e2e/fixtures && astro preview --root tests/e2e/fixtures",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run --config ./tests/unit/vitest.config.ts",
+    "test:unit:watch": "vitest --config ./tests/unit/vitest.config.ts",
+    "test:e2e": "npx playwright test --config ./tests/e2e/config.playwright.ts",
+    "test:e2e:dev": "PLAYWRIGHT_ENV=dev npm run test:e2e --ui",
+    "test:e2e:install": "npx playwright install --with-deps"
   },
   "author": {
     "name": "Georgy Marchuk",
@@ -52,7 +61,16 @@
     "@swup/plugin": "^4.0.0"
   },
   "devDependencies": {
-    "@swup/cli": "^5.0.1"
+    "@playwright/test": "^1.52.0",
+    "@swup/cli": "^5.0.1",
+    "@tailwindcss/vite": "^4.1.8",
+    "astro": "^5.9.1",
+    "astro-feather": "^1.0.0",
+    "jsdom": "^26.1.0",
+    "swup": "^4.8.2",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.2"
   },
   "peerDependencies": {
     "swup": "^4.2.0"

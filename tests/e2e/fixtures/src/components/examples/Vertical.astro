@@ -1,0 +1,51 @@
+---
+import Tiles from "./Tiles.astro";
+---
+
+<div class="wrap">
+  <div class="pane">
+    <div class="scroller --vertical" data-testid="first-vertical">
+      <Tiles amount={100} direction="vertical" uniqueid="first-vertical" />
+    </div>
+  </div>
+  <div class="pane">
+    <div class="scroller --vertical" data-testid="second-vertical">
+      <Tiles amount={40} direction="vertical" uniqueid="second-vertical" />
+    </div>
+  </div>
+  <div class="pane">
+    <div class="scroller --vertical" data-testid="third-vertical">
+      <Tiles amount={70} direction="vertical" uniqueid="third-vertical" />
+    </div>
+  </div>
+</div>
+
+<style>
+  .wrap {
+    display: grid;
+    grid-template-columns: repeat(2, 50%);
+
+  }
+  .pane + .pane {
+    border-left: var(--border-style);
+    margin-left: -1px;
+  }
+  .pane:last-child {
+      display: none;
+    }
+  .scroller {
+    aspect-ratio: 9 / 16;
+    overflow: auto;
+  }
+  @media (min-width: 800px) {
+    .wrap {
+      grid-template-columns: repeat(3, 33.33333%);
+    }
+    .pane:last-child {
+      display: block;
+    }
+    .scroller {
+      aspect-ratio: 1;
+    }
+  }
+</style>
