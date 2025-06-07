@@ -1,4 +1,8 @@
-# Swup Scroll plugin
+# Swup Scroll Plugin
+
+[![Unit Tests](https://img.shields.io/github/actions/workflow/status/swup/scroll-plugin/unit-tests.yml?branch=next&label=unit%20tests)](https://github.com/swup/scroll-plugin/actions/workflows/unit-tests.yml)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/swup/scroll-plugin/e2e-tests.yml?branch=next&label=e2e%20tests)](https://github.com/swup/scroll-plugin/actions/workflows/e2e-tests.yml)
+[![License](https://img.shields.io/github/license/swup/scroll-plugin.svg)](https://github.com/swup/scroll-plugin/blob/main/LICENSE)
 
 A [swup](https://swup.js.org) plugin for customizable smooth scrolling.
 
@@ -98,10 +102,6 @@ For finer control, you can pass an object:
 }
 ```
 
-### scrollFriction and scrollAcceleration
-
-The animation behavior of the scroll animation can be adjusted by setting `scrollFriction` and `scrollAcceleration`.
-
 ### getAnchorElement
 
 Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).
@@ -190,8 +190,6 @@ new SwupScrollPlugin({
     samePageWithHash: true,
     samePage: true
   },
-  scrollFriction: 0.3,
-  scrollAcceleration: 0.04,
   getAnchorElement: null,
   markScrollTarget: false,
   offset: 0,
