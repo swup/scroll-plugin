@@ -1,5 +1,5 @@
 import Plugin from '@swup/plugin';
-import { Handler, Visit, queryAll } from 'swup';
+import { type Handler, type Visit, queryAll } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
 export type Options = {
@@ -403,7 +403,7 @@ export default class SwupScrollPlugin extends Plugin {
 	scrollTo(y: number, animate = true, element?: Element): void {
 		// Create dummy visit
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
-		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
+		const visit = this.swup.createVisit({ to: this.swup.location.url });
 
 		element ??= this.getRootscrollContainer();
 
