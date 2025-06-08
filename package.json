@@ -58,7 +58,8 @@
     "url": "https://github.com/swup/scroll-plugin.git"
   },
   "dependencies": {
-    "@swup/plugin": "^4.0.0"
+    "@swup/plugin": "^4.0.0",
+    "compute-scroll-into-view": "^3.1.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

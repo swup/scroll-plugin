@@ -1,5 +1,6 @@
 import Plugin from '@swup/plugin';
 import { Handler, Visit, queryAll } from 'swup';
+import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
 export type Options = {
 	doScrollingRightAway: boolean;
@@ -388,14 +389,6 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
-	 * Get the closest parent of an element that can be scrolled.
-	 */
-	getClosestscrollContainer(element: Element): HTMLElement {
-		const scrollableAncestors = this.getAllScrollableAncestors(element);
-		return scrollableAncestors[0] || this.getRootscrollContainer();
-	}
-
-	/**
 	 * Get the root scrolling element
 	 */
 	getRootscrollContainer() {
@@ -454,71 +447,16 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Scroll an element into view by recursively scrolling all scrollable ancestors
 	 * Mimics browser's native scrollIntoView behavior for nested scrollable containers
 	 */
-	scrollElementIntoView(element: Element, animate: boolean = false): void {
-		const scrollableAncestors = this.getAllScrollableAncestors(element);
+	scrollElementIntoView(scrollTarget: Element, animate: boolean = false): void {
+		const scrollActions = computeRequiredScrollActions(scrollTarget, {
+			scrollMode: 'always',
+			block: 'start',
+			inline: 'start'
+		});
 
-		// Process from innermost to outermost scrollable container
-		for (const scrollContainer of scrollableAncestors) {
-			const elementRect = element.getBoundingClientRect();
-			const containerRect = scrollContainer.getBoundingClientRect();
-			const scrollOffset = this.getOffset(element, scrollContainer);
-
-			// Calculate the element's position relative to the scrolling container
-			let targetScrollTop = 0;
-
-			if (scrollContainer === this.getRootscrollContainer()) {
-				// For the root element, use the element's position relative to the document
-				// plus current scroll position minus offset
-				targetScrollTop =
-					elementRect.top + window.scrollY - scrollOffset;
-			} else {
-				// For nested containers, calculate relative position
-				const elementTopRelativeToContainer = elementRect.top - containerRect.top;
-				targetScrollTop =
-					scrollContainer.scrollTop +
-					elementTopRelativeToContainer -
-					scrollOffset;
-			}
-
-			// Ensure we don't scroll beyond the maximum possible scroll position
-			const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-			const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
-
-			// Scroll this container
-			this.swup.scrollTo?.(finalScrollTop, animate, scrollContainer);
-		}
-	}
-
-	/**
-	 * Get all scrollable ancestors of an element, from closest to furthest
-	 */
-	getAllScrollableAncestors(element: Element): HTMLElement[] {
-		const scrollableAncestors: HTMLElement[] = [];
-		let parent: HTMLElement | null = element.parentElement;
-
-		while (parent) {
-			const { overflowY, overflowX } = getComputedStyle(parent);
-			const hasVerticalScroll =
-				['auto', 'scroll'].includes(overflowY) && parent.scrollHeight > parent.clientHeight;
-			const hasHorizontalScroll =
-				['auto', 'scroll'].includes(overflowX) && parent.scrollWidth > parent.clientWidth;
-
-			if (hasVerticalScroll || hasHorizontalScroll) {
-				scrollableAncestors.push(parent);
-			}
-
-			parent = parent.parentElement;
-		}
-
-		// Always include the root scrolling element as the final ancestor
-		const rootElement = this.getRootscrollContainer();
-		if (
-			scrollableAncestors.length === 0 ||
-			scrollableAncestors[scrollableAncestors.length - 1] !== rootElement
-		) {
-			scrollableAncestors.push(rootElement);
-		}
-
-		return scrollableAncestors;
+		scrollActions.forEach(({ el: scrollContainer, top }) => {
+      const offset = this.getOffset(scrollTarget, scrollContainer);
+			this.scrollTo(top - offset, animate, scrollContainer);
+		});
 	}
 }
