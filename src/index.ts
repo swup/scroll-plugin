@@ -1,5 +1,6 @@
 import Plugin from '@swup/plugin';
-import { Handler, Visit, queryAll } from 'swup';
+import { type Handler, type Visit, queryAll } from 'swup';
+import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
 export type Options = {
 	doScrollingRightAway: boolean;
@@ -9,7 +10,7 @@ export type Options = {
 		samePage: boolean;
 	};
 	getAnchorElement?: (hash: string) => Element | null;
-	offset: number | ((el: Element) => number);
+	offset: number | ((scrollTarget?: Element, scrollContainer?: Element) => number);
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
@@ -29,7 +30,7 @@ type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
-		scrollTo?: (offset: number, animate?: boolean, scrollingElement?: Element) => void;
+		scrollTo?: (offset: number, animate?: boolean, scrollContainer?: Element) => void;
 	}
 
 	export interface VisitScroll {
@@ -84,48 +85,9 @@ export default class SwupScrollPlugin extends Plugin {
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
 
-		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
-		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
-
-		// Add scrollTo method to swup and animate based on current animateScroll option
-		swup.scrollTo = (offset: number, animate = true, element?: Element) => {
-			element ??= this.getRootScrollingElement();
-
-			const eventTarget = element instanceof HTMLHtmlElement ? window : element;
-
-			/**
-			 * Dispatch the scroll:end hook upon completion
-			 */
-			eventTarget.addEventListener(
-				'scrollend',
-				() => swup.hooks.callSync('scroll:end', visit, undefined),
-				{ once: true }
-			);
-
-			/**
-			 * Make the scroll cancelable upon user interaction
-			 */
-			eventTarget.addEventListener(
-				'wheel',
-				() => {
-					element.scrollTo({
-						top: element.scrollTop,
-						behavior: 'instant'
-					});
-				},
-				{ once: true }
-			);
-
-			/**
-			 * Dispatch the scroll:start hook
-			 */
-			swup.hooks.callSync('scroll:start', visit, undefined);
-
-			element.scrollTo({
-				top: offset,
-				behavior: animate ? 'smooth' : 'instant'
-			});
-		};
+		/* Add scrollTo method to swup instance */
+		swup.scrollTo = (y: number, animate = true, element?: Element) =>
+			this.scrollTo(y, animate, element);
 
 		/**
 		 * Disable browser scroll restoration for history visits
@@ -208,12 +170,14 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (el?: Element): number => {
-		if (!el) return 0;
+	getOffset = (scrollTarget?: Element, scrollContainer?: Element): number => {
+		if (!scrollTarget) return 0;
+
 		// If options.offset is a function, apply and return it
 		if (typeof this.options.offset === 'function') {
-			return parseInt(String(this.options.offset(el)), 10);
+			return parseInt(String(this.options.offset(scrollTarget, scrollContainer)), 10);
 		}
+
 		// Otherwise, return the sanitized offset
 		return parseInt(String(this.options.offset), 10);
 	};
@@ -265,13 +229,7 @@ export default class SwupScrollPlugin extends Plugin {
 			return false;
 		}
 
-		const scrollingElement = this.getClosestScrollingElement(element);
-
-		const { top: elementTop } = element.getBoundingClientRect();
-		const top = elementTop + scrollingElement.scrollTop - this.getOffset(element);
-		const maxTop = scrollingElement.scrollHeight - scrollingElement.clientHeight;
-
-		this.swup.scrollTo?.(Math.min(top, maxTop), animate, scrollingElement);
+		this.scrollElementIntoView(element, animate);
 
 		return true;
 	}
@@ -431,33 +389,74 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
-	 * Get the closest parent of an element that can be scrolled.
-	 */
-	getClosestScrollingElement(element: Element): HTMLElement {
-		let parent: HTMLElement | null = element.parentElement;
-
-		while (parent) {
-			const { overflowY } = getComputedStyle(parent);
-			const isScrollable =
-				['auto', 'scroll'].includes(overflowY) && parent.scrollHeight > parent.clientHeight;
-
-			if (isScrollable) {
-				return parent;
-			}
-
-			parent = parent.parentElement;
-		}
-
-		// Fallback: return the root scrolling element
-		return this.getRootScrollingElement();
-	}
-
-	/**
 	 * Get the root scrolling element
 	 */
-	getRootScrollingElement() {
+	getRootScrollContainer() {
 		return document.scrollingElement instanceof HTMLElement
 			? document.scrollingElement
 			: document.documentElement;
+	}
+
+	/**
+	 * Scroll to a specific offset, with optional animation.
+	 */
+	scrollTo(y: number, animate = true, scrollContainer?: Element): void {
+		// Create dummy visit
+		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
+		const visit = this.swup.createVisit({ to: this.swup.location.url });
+
+		scrollContainer ??= this.getRootScrollContainer();
+
+		const eventTarget = scrollContainer instanceof HTMLHtmlElement ? window : scrollContainer;
+
+		/**
+		 * Dispatch the scroll:end hook upon completion
+		 */
+		eventTarget.addEventListener(
+			'scrollend',
+			() => this.swup.hooks.callSync('scroll:end', visit, undefined),
+			{ once: true }
+		);
+
+		/**
+		 * Make the scroll cancelable upon user interaction
+		 */
+		eventTarget.addEventListener(
+			'wheel',
+			() => {
+				scrollContainer.scrollTo({
+					top: scrollContainer.scrollTop,
+					behavior: 'instant'
+				});
+			},
+			{ once: true }
+		);
+
+		/**
+		 * Dispatch the scroll:start hook
+		 */
+		this.swup.hooks.callSync('scroll:start', visit, undefined);
+
+		scrollContainer.scrollTo({
+			top: y,
+			behavior: animate ? 'smooth' : 'instant'
+		});
+	}
+
+	/**
+	 * Scroll an element into view by recursively scrolling all scrollable ancestors
+	 * Mimics browser's native scrollIntoView behavior for nested scrollable containers
+	 */
+	scrollElementIntoView(scrollTarget: Element, animate: boolean = false): void {
+		const scrollActions = computeRequiredScrollActions(scrollTarget, {
+			scrollMode: 'always',
+			block: 'start',
+			inline: 'start'
+		});
+
+		scrollActions.forEach(({ el: scrollContainer, top }) => {
+			const offset = this.getOffset(scrollTarget, scrollContainer);
+			this.scrollTo(top - offset, animate, scrollContainer);
+		});
 	}
 }
