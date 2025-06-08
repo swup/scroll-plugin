@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root {
+  --saturation: 100%;
+  --lightness: 80%;
+  font-size: clamp(20px, 2vw, 20px);
+}
+@utility is-h1 {
+  @apply text-4xl;
+}
+@utility is-h2 {
+  @apply text-lg;
+}
