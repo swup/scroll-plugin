@@ -193,10 +193,10 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Scroll to top on `scroll:top` hook
+	 * Scroll to top/left on `scroll:top` hook
 	 */
 	handleScrollToTop: Handler<'scroll:top'> = (visit) => {
-		this.swup.scrollTo?.(0, visit.scroll.animate);
+		this.scrollTo({ top: 0, left: 0 }, visit.scroll.animate);
 		return true;
 	};
 
