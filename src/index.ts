@@ -10,7 +10,7 @@ export type Options = {
 		samePage: boolean;
 	};
 	getAnchorElement?: (hash: string) => Element | null;
-	offset: number | ((target?: Element, container?: Element) => number);
+	offset: number | ((scrollTarget?: Element, scrollContainer?: Element) => number);
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
@@ -170,12 +170,12 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (target?: Element, container?: Element): number => {
-		if (!target) return 0;
+	getOffset = (scrollTarget?: Element, scrollContainer?: Element): number => {
+		if (!scrollTarget) return 0;
 
 		// If options.offset is a function, apply and return it
 		if (typeof this.options.offset === 'function') {
-			return parseInt(String(this.options.offset(target, container)), 10);
+			return parseInt(String(this.options.offset(scrollTarget, scrollContainer)), 10);
 		}
 
 		// Otherwise, return the sanitized offset
@@ -391,7 +391,7 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the root scrolling element
 	 */
-	getRootscrollContainer() {
+	getRootScrollContainer() {
 		return document.scrollingElement instanceof HTMLElement
 			? document.scrollingElement
 			: document.documentElement;
@@ -400,14 +400,14 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Scroll to a specific offset, with optional animation.
 	 */
-	scrollTo(y: number, animate = true, element?: Element): void {
+	scrollTo(y: number, animate = true, scrollContainer?: Element): void {
 		// Create dummy visit
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
 		const visit = this.swup.createVisit({ to: this.swup.location.url });
 
-		element ??= this.getRootscrollContainer();
+		scrollContainer ??= this.getRootScrollContainer();
 
-		const eventTarget = element instanceof HTMLHtmlElement ? window : element;
+		const eventTarget = scrollContainer instanceof HTMLHtmlElement ? window : scrollContainer;
 
 		/**
 		 * Dispatch the scroll:end hook upon completion
@@ -424,8 +424,8 @@ export default class SwupScrollPlugin extends Plugin {
 		eventTarget.addEventListener(
 			'wheel',
 			() => {
-				element.scrollTo({
-					top: element.scrollTop,
+				scrollContainer.scrollTo({
+					top: scrollContainer.scrollTop,
 					behavior: 'instant'
 				});
 			},
@@ -437,7 +437,7 @@ export default class SwupScrollPlugin extends Plugin {
 		 */
 		this.swup.hooks.callSync('scroll:start', visit, undefined);
 
-		element.scrollTo({
+		scrollContainer.scrollTo({
 			top: y,
 			behavior: animate ? 'smooth' : 'instant'
 		});
@@ -455,7 +455,7 @@ export default class SwupScrollPlugin extends Plugin {
 		});
 
 		scrollActions.forEach(({ el: scrollContainer, top }) => {
-      const offset = this.getOffset(scrollTarget, scrollContainer);
+			const offset = this.getOffset(scrollTarget, scrollContainer);
 			this.scrollTo(top - offset, animate, scrollContainer);
 		});
 	}
