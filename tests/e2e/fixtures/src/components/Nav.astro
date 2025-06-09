@@ -9,8 +9,8 @@ export type Props = {
 const { links } = Astro.props;
 ---
 
-<nav>
-	<ul class="grid md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 my-10">
+<nav class="pointer-events-none">
+	<ul class="grid md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 mb-10">
 		{
 			links.map((link) => (
 				<li>

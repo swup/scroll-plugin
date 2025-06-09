@@ -11,13 +11,13 @@ const startHue = Astro.props.startHue || 0;
 const getTestId = (colIndex: number, rowIndex: number): string => {
 	if (rowIndex === 0 && colIndex === 0) return `${uniqueid}_tile--first`;
 	if (rowIndex === rows - 1 && colIndex === columns - 1) return `${uniqueid}_tile--last`;
-	return ``;
+	return `${uniqueid}_tile--${colIndex}-${rowIndex}`;
 };
 
 const getLabel = (colIndex: number, rowIndex: number): string => {
 	if (rowIndex === 0 && colIndex === 0) return 'first';
 	if (rowIndex === rows - 1 && colIndex === columns - 1) return 'last';
-	return String(colIndex + rowIndex);
+	return `${colIndex}.${rowIndex}`;
 };
 ---
 

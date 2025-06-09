@@ -5,6 +5,7 @@ interface Props {
 	title?: string;
 	description?: string;
 	isFrontPage?: boolean;
+	hideHeader?: boolean;
 	noindex?: boolean;
 	intro?: string;
 }
@@ -14,7 +15,7 @@ import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import Header from '../components/Header.astro';
 
-const { title, description, noindex, isFrontPage, intro } = Astro.props;
+const { title, description, noindex, isFrontPage = false, hideHeader = false, intro } = Astro.props;
 ---
 
 <!doctype html>
@@ -26,8 +27,9 @@ const { title, description, noindex, isFrontPage, intro } = Astro.props;
 	/>
 	<body>
 		<Header />
-		<div id="swup" class="p-10">
-			<header class="mb-8">
+		<div id="swup" class="p-4">
+
+			<header class="mb-8 mb-10" class:list={[{ 'sr-only': hideHeader }]}>
 				<h1 class="text-4xl font-bold mb-0.5">{SITE_TITLE}</h1>
 				<div class="font-bold"><slot name="after-header" /></div>
 			</header>
@@ -45,8 +47,15 @@ const { title, description, noindex, isFrontPage, intro } = Astro.props;
 					new ScrollPlugin({
 						markScrollTarget: true,
 						offset: (target, container) => {
-							return container?.matches('html')
-								? document.querySelector('#masthead')!.clientHeight + 20
+							const headerHeight =
+								document.querySelector('#masthead')!.clientHeight + 20;
+
+							if (!container || container?.matches('html')) {
+								return headerHeight;
+							}
+
+							return getComputedStyle(container).position === 'fixed'
+								? headerHeight
 								: 0;
 						}
 					})
