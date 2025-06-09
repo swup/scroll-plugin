@@ -11,7 +11,7 @@ test.describe("API", () => {
     await page.goto("/");
   });
 
-  test("runs e2e tests against the Astro fixtures", async ({ page }) => {
+  test("runs e2e tests against the Astro playground", async ({ page }) => {
 	const heading = page.locator('h1');
   	await expect(heading).toContainText('ScrollPlugin');
   });
