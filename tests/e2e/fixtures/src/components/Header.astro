@@ -3,17 +3,18 @@ import { ArrowUpRightIcon } from 'astro-feather';
 
 const links = [
 	{
-		href: 'https://swup.js.org',
-		title: 'Swup'
+		href: 'https://swup.js.org/plugins/scroll-plugin',
+		title: 'Docs'
 	},
 	{
-		href: 'https://swup.js.org/plugins/scroll-plugin',
-		title: 'ScrollPlugin'
+		href: 'https://github.com/swup/scroll-plugin',
+		title: 'GitHub'
 	}
 ];
 ---
 
 <header
+	id="masthead"
 	class="text-swup-purple flex gap-2 border-b-2 p-3 sticky top-0 bg-white items-center font-bold"
 >
 	<a href="/" class="flex gap-2 items-center">
@@ -22,7 +23,7 @@ const links = [
 			alt="Swup Logo"
 			class="aspect-square w-8"
 		/>
-		<span class="font-bold">swup</span>
+		<span class="font-bold">@swup/scroll-plugin</span>
 	</a>
 	<ul class="ml-auto flex gap-4 pe-2">
 		{
@@ -31,10 +32,12 @@ const links = [
 					<a
 						href={link.href}
 						target="_blank"
-						class="hover:underline flex gap-1 items-center"
+						class="hover:underline flex gap-0.5 items-center"
 					>
 						{link.title}
-						<ArrowUpRightIcon />
+						<span class="text-gray-400">
+							<ArrowUpRightIcon size={20} />
+						</span>
 					</a>
 				</li>
 			))

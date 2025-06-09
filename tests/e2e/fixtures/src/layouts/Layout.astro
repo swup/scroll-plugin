@@ -28,8 +28,8 @@ const { title, description, noindex, isFrontPage, intro } = Astro.props;
 		<Header />
 		<div id="swup" class="max-w-4xl mx-auto p-4 py-20">
 			<header class="mb-8">
-				<h1 class="is-h1">{SITE_TITLE}</h1>
-				<slot name="after-header" />
+				<h1 class="text-4xl font-bold mb-0.5">{SITE_TITLE}</h1>
+				<div class="font-bold"><slot name="after-header" /></div>
 			</header>
 
 			<slot />
@@ -43,7 +43,8 @@ const { title, description, noindex, isFrontPage, intro } = Astro.props;
 			const swup = new Swup({
 				plugins: [
 					new ScrollPlugin({
-						markScrollTarget: true
+						markScrollTarget: true,
+						offset: () => document.querySelector('#masthead')!.clientHeight + 20
 					})
 				]
 			});

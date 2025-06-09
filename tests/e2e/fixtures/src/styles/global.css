@@ -8,13 +8,24 @@
 @theme {
   --color-swup-purple: #27276E;
 }
-@utility is-h1 {
-  @apply text-6xl font-bold;
-}
 @utility is-h2 {
   @apply text-lg;
 }
 
 [data-swup-scroll-target] {
-  @apply outline-purple-600 outline-2 rounded-sm outline-offset-3;
+  @apply outline-purple-600 outline-2 rounded-sm -outline-offset-4;
+  &.tile {
+    @apply bg-black! text-white!
+  }
 }
+
+/* a {
+  @apply text-gray-400 hover:text-black;
+  .feather {
+    @apply relative transition-transform;
+  }
+  &:hover .feather {
+    @apply translate-x-1;
+  }
+} */
+

@@ -10,41 +10,46 @@ import Nav from '../components/Nav.astro';
 ---
 
 <Layout isFrontPage={true}>
-	<p class="is-h2" slot="after-header">{SITE_DESCRIPTION}</p>
+	<p slot="after-header">{SITE_DESCRIPTION}</p>
 
 	<Nav
 		links={[
 			{
-				href: '#horizontal',
-				title: 'Scroll to Anchor',
-				description: 'Scroll to the horizontal container'
+				href: '#vertical',
+				title: 'Scroll normally',
+				description: 'Scroll to the vertical container'
 			},
 			{
-				href: '#another',
-				title: 'Another Link',
-				description: 'This goes to another section'
+				href: '#vertical_tile--last',
+				title: 'Scroll vertically, nested',
+				description: 'Scroll to the last vertical tile'
 			},
 			{
-				href: '#more',
-				title: 'More Content',
-				description: 'Navigate to more content'
+				href: '#first-horizontal_tile--15',
+				title: 'Scroll horizontally, nested',
+				description: 'Scroll to the 15th horizontal tile'
+			},
+			{
+				href: '#first-both_tile--last',
+				title: 'Scroll both axis, nested',
+				description: 'Navigate to the very last tile'
 			}
 		]}
 	/>
 
 	<div class="space-y-5">
 		<section id="vertical">
-			<h2 class="is-h2"><a href="#vertical">A vertical scroll container</a></h2>
+			<h2 ><a href="#vertical">A vertical scroll container</a></h2>
 			<VerticalExample />
 		</section>
 
 		<section id="horizontal">
-			<h2 class="is-h2"><a href="#horizontal">A horizontal scroll container</a></h2>
+			<h2 ><a href="#horizontal">A horizontal scroll container</a></h2>
 			<HorizontalExample />
 		</section>
 
 		<section id="both-directions">
-			<h2 class="is-h2"><a href="#both-directions">Both Directions</a></h2>
+			<h2 ><a href="#both-directions">Both Directions</a></h2>
 			<BothDirectionsExample />
 		</section>
 	</div>

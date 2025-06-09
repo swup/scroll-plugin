@@ -27,6 +27,7 @@ const getLabel = (index: number): string => {
 			<li
 				class="tile"
 				style={{ '--hue': (startHue + index * 10) % 360 }}
+				id={getTestId(index)}
 				data-testid={getTestId(index)}
 			>
 				{getLabel(index)}
