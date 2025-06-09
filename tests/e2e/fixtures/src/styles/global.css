@@ -8,15 +8,12 @@
 @theme {
   --color-swup-purple: #27276E;
 }
-@utility is-h2 {
-  @apply text-lg;
+h2 {
+  @apply font-bold mb-1;
 }
 
 [data-swup-scroll-target] {
   @apply outline-purple-600 outline-2 rounded-sm -outline-offset-4;
-  &.tile {
-    @apply bg-black! text-white!
-  }
 }
 
 /* a {

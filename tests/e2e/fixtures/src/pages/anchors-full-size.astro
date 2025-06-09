@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+import VerticalExample from '../components/examples/Vertical.astro';
+import HorizontalExample from '../components/examples/Horizontal.astro';
+import BothDirectionsExample from '../components/examples/BothDirections.astro';
+import Table from '../components/examples/Table.astro';
+
+import Nav from '../components/Nav.astro';
+---
+
+<Layout isFrontPage={true}>
+	<p slot="after-header">Full-Size Containers</p>
+
+	<Nav
+		links={[
+			{
+				href: '#fullsize_tile--first',
+				title: 'First Tile',
+				description: 'Scroll to the first tile'
+			},
+			{
+				href: '#fullsize_tile--last',
+				title: 'Last Tile',
+				description: 'Scroll to the last tile'
+			}
+		]}
+	/>
+
+	<div class="fixed inset-0 size-full overflow-auto -z-10" data-testid="both-axis">
+		<Table rows={100} columns={100} uniqueid="fullsize" />
+	</div>
+</Layout>
