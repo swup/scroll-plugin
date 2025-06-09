@@ -10,7 +10,10 @@ export type Options = {
 		samePage: boolean;
 	};
 	getAnchorElement?: (hash: string) => Element | null;
-	offset: number | ((scrollTarget?: Element, scrollContainer?: Element) => number);
+	offset:
+		| number
+		| ScrollPosition
+		| ((scrollTarget?: Element, scrollContainer?: Element) => number | ScrollPosition);
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
@@ -173,16 +176,26 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (scrollTarget?: Element, scrollContainer?: Element): number => {
-		if (!scrollTarget) return 0;
+	getOffset = (scrollTarget?: Element, scrollContainer?: Element): ScrollPosition => {
+		if (!scrollTarget) return { top: 0, left: 0 };
+
+		let offset: number | ScrollPosition;
 
 		// If options.offset is a function, apply and return it
+		// Otherwise, use the actual offset value
 		if (typeof this.options.offset === 'function') {
-			return parseInt(String(this.options.offset(scrollTarget, scrollContainer)), 10);
+			offset = this.options.offset(scrollTarget, scrollContainer);
+		} else {
+			offset = this.options.offset;
 		}
 
-		// Otherwise, return the sanitized offset
-		return parseInt(String(this.options.offset), 10);
+		// Normalize offset to an object, sharing top value for both top and left if it's a number
+		if (typeof offset === 'object') {
+			return offset;
+		} else {
+			const top = parseInt(String(offset ?? ''), 10) || 0;
+			return { top, left: top };
+		}
 	};
 
 	/**
@@ -461,8 +474,15 @@ export default class SwupScrollPlugin extends Plugin {
 		});
 
 		scrollActions.forEach(({ top, left, el: scrollContainer }) => {
-			const offset = this.getOffset(scrollTarget, scrollContainer);
-			this.scrollTo({ top: top - offset, left: left - offset }, animate, scrollContainer);
+			const { top: topOffset, left: leftOffset } = this.getOffset(
+				scrollTarget,
+				scrollContainer
+			);
+			this.scrollTo(
+				{ top: top - topOffset, left: left - leftOffset },
+				animate,
+				scrollContainer
+			);
 		});
 	}
 }
