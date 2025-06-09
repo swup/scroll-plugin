@@ -1,0 +1,19 @@
+---
+import { ArrowRightIcon } from 'astro-feather';
+
+export type Props = {
+	href: string;
+	title: string;
+	description: string;
+};
+
+const { href, title, description } = Astro.props;
+---
+
+<a href={href} class="block border-2 rounded-sm p-2 hover:bg-red-300 transition-all">
+	<strong class="flex gap-1 items-center">
+		{title}
+		<ArrowRightIcon />
+	</strong>
+	<span class="text-sm leading-0">{description}</span>
+</a>

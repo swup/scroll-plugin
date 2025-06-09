@@ -5,9 +5,16 @@
   --lightness: 80%;
   font-size: clamp(20px, 2vw, 20px);
 }
+@theme {
+  --color-swup-purple: #27276E;
+}
 @utility is-h1 {
-  @apply text-4xl;
+  @apply text-6xl font-bold;
 }
 @utility is-h2 {
   @apply text-lg;
+}
+
+[data-swup-scroll-target] {
+  @apply outline-purple-600 outline-2 rounded-sm outline-offset-3;
 }
