@@ -307,7 +307,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getCachedScrollPositions(visit.to.url);
-		const { top, left } = scrollPositions?.window || { top: 0, left: 0 };
+		const { top = 0, left = 0 } = scrollPositions?.window || { top: 0, left: 0 };
 
 		// Give possible JavaScript time to execute before scrolling
 		requestAnimationFrame(() => this.scrollTo({ top, left }, visit.scroll.animate));
@@ -417,7 +417,7 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Scroll to a specific offset, with optional animation.
 	 */
 	scrollTo(position: number | ScrollPosition, animate = true, scrollContainer?: Element): void {
-		const { top, left } = typeof position === 'number' ? { top: position } : position;
+		const { top = 0, left = 0 } = typeof position === 'number' ? { top: position } : position;
 
 		// Create dummy visit
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
@@ -474,7 +474,7 @@ export default class SwupScrollPlugin extends Plugin {
 		});
 
 		scrollActions.forEach(({ top, left, el: scrollContainer }) => {
-			const { top: topOffset, left: leftOffset } = this.getOffset(
+			const { top: topOffset = 0, left: leftOffset = 0 } = this.getOffset(
 				scrollTarget,
 				scrollContainer
 			);
