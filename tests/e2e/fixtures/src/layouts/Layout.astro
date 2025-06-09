@@ -29,7 +29,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = false, in
 		<Header />
 		<div id="swup" class="p-4">
 
-			<header class="mb-8 mb-10" class:list={[{ 'sr-only': hideHeader }]}>
+			<header class="mb-10" class:list={[{ 'sr-only': hideHeader }]}>
 				<h1 class="text-4xl font-bold mb-0.5">{SITE_TITLE}</h1>
 				<div class="font-bold"><slot name="after-header" /></div>
 			</header>
