@@ -27,6 +27,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 	/>
 	<body>
 		<Header />
+
 		<div id="swup" class="p-4">
 			<header class="mb-10" class:list={[{ 'sr-only': hideHeader }]}>
 				<h1 class="text-4xl font-bold mb-0.5">{SITE_TITLE}</h1>
@@ -40,12 +41,13 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 
 		<script src="https://unpkg.com/@swup/preload-plugin@3"></script>
 		<script src="https://unpkg.com/@swup/fade-theme@2"></script>
+
 		<script>
 			import Swup from 'swup';
 			import ScrollPlugin from '../../../src/index.js';
 			document.addEventListener('DOMContentLoaded', (event) => {
 				const swup = new Swup({
-					containers: ['#swup', '#breadcrumb'],
+					containers: ['#swup', '#header'],
 					plugins: [
 						// @ts-expect-error
 						new SwupPreloadPlugin({ preloadVisibleLinks: true }),
@@ -59,7 +61,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 							},
 							offset: (target, container) => {
 								const headerHeight =
-									document.querySelector('#masthead')!.clientHeight + 20;
+									document.querySelector('#header')!.clientHeight + 20;
 
 								if (!container) return 0;
 
