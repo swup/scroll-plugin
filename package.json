@@ -73,9 +73,6 @@
     "typescript": "^5.8.3",
     "vitest": "^3.2.2"
   },
-  "peerDependencies": {
-    "swup": "^4.2.0"
-  },
   "browserslist": [
     "extends @swup/browserslist-config"
   ],

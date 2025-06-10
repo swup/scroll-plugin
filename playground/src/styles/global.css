@@ -12,7 +12,8 @@ h2 {
 	@apply font-bold mb-1;
 }
 
-[data-swup-scroll-target] {
+[data-swup-scroll-target],
+:target {
 	@apply outline-purple-600 outline-4 rounded-sm outline-offset-6;
   @apply [&.tile]:-outline-offset-6 [&.cell]:-outline-offset-6;
 }

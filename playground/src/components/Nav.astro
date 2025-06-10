@@ -14,7 +14,12 @@ const { links } = Astro.props;
 		{
 			links.map((link) => (
 				<li>
-					<NavLink href={link.href} title={link.title} description={link.description} />
+					<NavLink
+						href={link.href}
+						title={link.title}
+						description={link.description}
+						direction={link.direction}
+					/>
 				</li>
 			))
 		}

@@ -15,7 +15,7 @@ import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import Header from '../components/Header.astro';
 
-const { title, description, noindex, isFrontPage = false, hideHeader = false, intro } = Astro.props;
+const { title, description, noindex, isFrontPage = false, hideHeader = true, intro } = Astro.props;
 ---
 
 <!doctype html>
@@ -28,7 +28,6 @@ const { title, description, noindex, isFrontPage = false, hideHeader = false, in
 	<body>
 		<Header />
 		<div id="swup" class="p-4">
-
 			<header class="mb-10" class:list={[{ 'sr-only': hideHeader }]}>
 				<h1 class="text-4xl font-bold mb-0.5">{SITE_TITLE}</h1>
 				<div class="font-bold"><slot name="after-header" /></div>
@@ -39,27 +38,40 @@ const { title, description, noindex, isFrontPage = false, hideHeader = false, in
 			<Footer />
 		</div>
 
+		<script src="https://unpkg.com/@swup/preload-plugin@3"></script>
+		<script src="https://unpkg.com/@swup/fade-theme@2"></script>
 		<script>
 			import Swup from 'swup';
 			import ScrollPlugin from '../../../src/index.js';
-			const swup = new Swup({
-				plugins: [
-					new ScrollPlugin({
-						markScrollTarget: true,
-						offset: (target, container) => {
-							const headerHeight =
-								document.querySelector('#masthead')!.clientHeight + 20;
+			document.addEventListener('DOMContentLoaded', (event) => {
+				const swup = new Swup({
+					containers: ['#swup', '#breadcrumb'],
+					plugins: [
+						// @ts-expect-error
+						new SwupPreloadPlugin({ preloadVisibleLinks: true }),
+						// @ts-expect-error
+						new SwupFadeTheme(),
+						new ScrollPlugin({
+							markScrollTarget: true,
+							offset: (target, container) => {
+								const headerHeight =
+									document.querySelector('#masthead')!.clientHeight + 20;
 
-							if (!container || container?.matches('html')) {
-								return headerHeight;
+								if (!container) return 0;
+
+								// scrolling the root
+								if (container.matches('html')) {
+									return { top: headerHeight, left: 0 };
+								}
+
+								// scrolling a fixed div
+								return getComputedStyle(container).position === 'fixed'
+									? { top: headerHeight, left: 0 }
+									: 0;
 							}
-
-							return getComputedStyle(container).position === 'fixed'
-								? headerHeight
-								: 0;
-						}
-					})
-				]
+						})
+					]
+				});
 			});
 		</script>
 	</body>

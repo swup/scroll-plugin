@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import AnchorsPageContent from '../components/AnchorsPageContent.astro';
+---
+
+<Layout isFrontPage={true}>
+	<p slot="after-header">Scroll nested containers</p>
+
+	<Nav
+		links={[
+			{
+				href: '#horizontal',
+				title: 'Anchor',
+				description: 'Scroll to the horizontal section',
+				direction: 'down'
+			},
+			{
+				href: '#vertical_tile--last',
+				title: 'Vertical, nested',
+				description: 'Scroll to the last vertical tile',
+				direction: 'down'
+			},
+			{
+				href: '#horizontal_tile--15',
+				title: 'Horizontal, nested',
+				description: 'Scroll to the 15th horizontal tile',
+				direction: 'down'
+			},
+			{
+				href: '#both-axis_tile--last',
+				title: 'Both axis, nested',
+				description: 'Scroll to the very last tile',
+				direction: 'down'
+			}
+		]}
+	/>
+
+	<AnchorsPageContent />
+
+	<Nav
+		links={[
+			{
+				href: '/',
+				title: 'Back to start',
+				description: 'Go back to the front page',
+				direction: 'left'
+			},
+			{
+				href: '#top',
+				title: 'Top',
+				description: 'Scroll to the very top',
+				direction: 'up'
+			},
+			{
+				href: '/anchors-2/',
+				title: 'Second Anchors page',
+				description: 'Visit the second anchors page'
+			}
+		]}
+	/>
+</Layout>

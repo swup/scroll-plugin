@@ -1,21 +1,19 @@
 ---
-import { ArrowUpRightIcon } from 'astro-feather';
+import { ArrowRightIcon, ArrowUpRightIcon } from 'astro-feather';
 
 const links = [
-	{
-		href: 'https://swup.js.org/plugins/scroll-plugin',
-		title: 'Docs'
-	},
 	{
 		href: 'https://github.com/swup/scroll-plugin',
 		title: 'GitHub'
 	}
 ];
+
+const path = Astro.url.pathname.replace(/^\/|\/$/g, '');
 ---
 
 <header
 	id="masthead"
-	class="text-swup-purple flex gap-2 border-b-2 p-3 sticky z-10 top-0 bg-white items-center font-bold"
+	class="text-swup-purple flex gap-2 border-b-2 p-3 sticky z-10 top-0 bg-white items-center font-bold whitespace-nowrap"
 >
 	<a href="/" class="flex gap-2 items-center">
 		<img
@@ -23,9 +21,12 @@ const links = [
 			alt="Swup Logo"
 			class="aspect-square w-8"
 		/>
-		<span class="hidden sm:block font-bold">@swup/scroll-plugin</span>
+		<span id="breadcrumb" class="flex gap-1 items-center">
+			<span class="hidden sm:block">@swup/</span>scroll-plugin
+			{path && <ArrowRightIcon size={18} /> <span>{path}</span>}
+		</span>
 	</a>
-	<ul class="ml-auto flex gap-4 pe-2">
+	<ul class="ml-auto flex gap-4 pe-2 hidden md:block">
 		{
 			links.map((link) => (
 				<li>
