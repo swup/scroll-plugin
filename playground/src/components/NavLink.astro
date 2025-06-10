@@ -8,10 +8,10 @@ export type Props = {
 	title: string;
 	description: string;
 	direction?: Direction;
-	classes?: string[];
+	attributes?: Record<string, string | boolean>;
 };
 
-const { href, title, description, direction = 'right', classes = [] } = Astro.props;
+const { href, title, description, direction = 'right', attributes = {} } = Astro.props;
 
 const Icon = {
 	right: ArrowRightIcon,
@@ -24,7 +24,7 @@ const Icon = {
 <a
 	href={href}
 	class="group block border-2 rounded-sm p-2 transition-all text-black/50 bg-white hover:text-swup-purple hover:bg-gray-100 pointer-events-auto"
-	class:list={classes}
+	{...attributes}
 >
 	<strong class="flex gap-1 items-center text-black group-hover:text-swup-purple">
 		{title}

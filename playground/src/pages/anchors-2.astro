@@ -20,7 +20,7 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 				title: 'Anchors 1: Preserve',
 				description: 'Go back and preserve scroll positions',
 				direction: 'left',
-				classes: ['swup:preserve-scroll']
+				attributes: { 'data-preserve-scroll': true }
 			},
 			{
 				href: '#horizontal',
@@ -45,7 +45,7 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 				title: 'Both axis, nested',
 				description: 'Scroll to the very last tile',
 				direction: 'down'
-			},
+			}
 		]}
 	/>
 
@@ -58,7 +58,7 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 				title: 'Top',
 				description: 'Scroll to the top of the page',
 				direction: 'up'
-			},
+			}
 		]}
 	/>
 </Layout>
