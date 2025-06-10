@@ -8,6 +8,7 @@ import Table from './Table.astro';
 		<h2><a href="#vertical">Vertical</a></h2>
 		<div
 			class="border-2 rounded-sm overflow-y-auto h-50 w-full --vertical"
+			data-swup-scroll-container
 			data-testid="vertical"
 		>
 			<Tiles amount={100} direction="vertical" uniqueid="vertical" />
@@ -18,6 +19,7 @@ import Table from './Table.astro';
 		<h2><a href="#horizontal">Horizontal</a></h2>
 		<div
 			class="border-2 rounded-sm w-full overflow-x-auto --horizontal"
+			data-swup-scroll-container
 			data-testid="horizontal"
 		>
 			<Tiles amount={50} direction="horizontal" uniqueid="horizontal" />
@@ -26,7 +28,11 @@ import Table from './Table.astro';
 
 	<section id="both-axis">
 		<h2><a href="#both-axis">Both axis</a></h2>
-		<div class="border-2 rounded-sm w-full h-100 overflow-auto" data-testid="both-axis">
+		<div
+			class="border-2 rounded-sm w-full h-100 overflow-auto"
+			data-swup-scroll-container
+			data-testid="both-axis"
+		>
 			<Table rows={20} columns={20} uniqueid="both-axis" />
 		</div>
 	</section>

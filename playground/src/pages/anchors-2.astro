@@ -16,6 +16,12 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 				direction: 'left'
 			},
 			{
+				href: '/anchors-1/',
+				title: 'Anchors 1',
+				description: 'Go to the second anchors page',
+				direction: 'left'
+			},
+			{
 				href: '#horizontal',
 				title: 'Anchor',
 				description: 'Scroll to the horizontal section',
@@ -39,11 +45,6 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 				description: 'Scroll to the very last tile',
 				direction: 'down'
 			},
-			{
-				href: '/anchors-2/',
-				title: 'Anchors 2',
-				description: 'Go to the second anchors page'
-			}
 		]}
 	/>
 
@@ -52,22 +53,11 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 	<Nav
 		links={[
 			{
-				href: '/',
-				title: 'Back to start',
-				description: 'Go back to the front page',
-				direction: 'left'
-			},
-			{
 				href: '#top',
 				title: 'Top',
 				description: 'Scroll to the very top',
 				direction: 'up'
 			},
-			{
-				href: '/anchors-2/',
-				title: 'Second Anchors page',
-				description: 'Visit the second anchors page'
-			}
 		]}
 	/>
 </Layout>
