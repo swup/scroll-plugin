@@ -8,9 +8,10 @@ export type Props = {
 	title: string;
 	description: string;
 	direction?: Direction;
+	classes?: string[];
 };
 
-const { href, title, description, direction = 'right' } = Astro.props;
+const { href, title, description, direction = 'right', classes = [] } = Astro.props;
 
 const Icon = {
 	right: ArrowRightIcon,
@@ -23,17 +24,20 @@ const Icon = {
 <a
 	href={href}
 	class="group block border-2 rounded-sm p-2 transition-all text-black/50 bg-white hover:text-swup-purple hover:bg-gray-100 pointer-events-auto"
+	class:list={classes}
 >
 	<strong class="flex gap-1 items-center text-black group-hover:text-swup-purple">
 		{title}
 		<span
 			class="transition-transform ms-auto"
-			class:list={[{
-				'group-hover:translate-x-0.5': direction === 'right',
-				'group-hover:-translate-x-0.5': direction === 'left',
-				'group-hover:translate-y-0.5': direction === 'down',
-				'group-hover:-translate-y-0.5': direction === 'up',
-			}]}
+			class:list={[
+				{
+					'group-hover:translate-x-0.5': direction === 'right',
+					'group-hover:-translate-x-0.5': direction === 'left',
+					'group-hover:translate-y-0.5': direction === 'down',
+					'group-hover:-translate-y-0.5': direction === 'up'
+				}
+			]}
 		>
 			<Icon size={22} />
 		</span>

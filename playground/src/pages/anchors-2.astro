@@ -10,16 +10,17 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 	<Nav
 		links={[
 			{
-				href: '/',
-				title: 'Back to start',
-				description: 'Go back to the front page',
+				href: '/anchors-1/',
+				title: 'Anchors 1: Normal',
+				description: 'Go back to the first anchors page',
 				direction: 'left'
 			},
 			{
 				href: '/anchors-1/',
-				title: 'Anchors 1',
-				description: 'Go to the second anchors page',
-				direction: 'left'
+				title: 'Anchors 1: Preserve',
+				description: 'Go back and preserve scroll positions',
+				direction: 'left',
+				classes: ['swup:preserve-scroll']
 			},
 			{
 				href: '#horizontal',
@@ -55,7 +56,7 @@ import AnchorsPageContent from '../components/AnchorsPageContent.astro';
 			{
 				href: '#top',
 				title: 'Top',
-				description: 'Scroll to the very top',
+				description: 'Scroll to the top of the page',
 				direction: 'up'
 			},
 		]}

@@ -1,11 +1,12 @@
 ---
 import Tiles from './Tiles.astro';
 import Table from './Table.astro';
+import Nav from './Nav.astro';
 ---
 
 <div class="space-y-5 mb-10">
 	<section id="vertical">
-		<h2><a href="#vertical">Vertical</a></h2>
+		<h2>Vertical</h2>
 		<div
 			class="border-2 rounded-sm overflow-y-auto h-50 w-full --vertical"
 			data-swup-scroll-container
@@ -15,8 +16,19 @@ import Table from './Table.astro';
 		</div>
 	</section>
 
+	<Nav
+		links={[
+			{
+				href: '#top',
+				title: 'Top',
+				description: 'Scroll to the top of the page',
+				direction: 'up'
+			}
+		]}
+	/>
+
 	<section id="horizontal">
-		<h2><a href="#horizontal">Horizontal</a></h2>
+		<h2>Horizontal</h2>
 		<div
 			class="border-2 rounded-sm w-full overflow-x-auto --horizontal"
 			data-swup-scroll-container
@@ -26,8 +38,19 @@ import Table from './Table.astro';
 		</div>
 	</section>
 
+	<Nav
+		links={[
+			{
+				href: '#top',
+				title: 'Top',
+				description: 'Scroll to the top of the page',
+				direction: 'up'
+			}
+		]}
+	/>
+
 	<section id="both-axis">
-		<h2><a href="#both-axis">Both axis</a></h2>
+		<h2>Both axis</h2>
 		<div
 			class="border-2 rounded-sm w-full h-100 overflow-auto"
 			data-swup-scroll-container
@@ -36,6 +59,17 @@ import Table from './Table.astro';
 			<Table rows={20} columns={20} uniqueid="both-axis" />
 		</div>
 	</section>
+
+	<Nav
+		links={[
+			{
+				href: '#top',
+				title: 'Top',
+				description: 'Scroll to the top of the page',
+				direction: 'up'
+			}
+		]}
+	/>
 
 	<section>
 		<p>

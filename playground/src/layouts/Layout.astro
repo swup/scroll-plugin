@@ -53,6 +53,10 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 						new SwupFadeTheme(),
 						new ScrollPlugin({
 							markScrollTarget: true,
+							shouldResetScrollPosition: (trigger) => {
+								const preserve = !trigger?.matches('.swup\\:preserve-scroll');
+								return preserve;
+							},
 							offset: (target, container) => {
 								const headerHeight =
 									document.querySelector('#masthead')!.clientHeight + 20;
