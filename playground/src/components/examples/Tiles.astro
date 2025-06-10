@@ -35,23 +35,3 @@ const getLabel = (index: number): string => {
 		))
 	}
 </ul>
-
-<style>
-	.tile {
-		display: grid;
-		place-content: center;
-		background: hsl(var(--hue), var(--saturation), var(--lightness));
-	}
-	.tiles--vertical .tile {
-		padding-block: 1rem;
-	}
-	.tiles--horizontal {
-		display: flex;
-		width: max-content;
-	}
-	.tiles--horizontal .tile {
-		flex: none;
-		width: 10rem;
-		aspect-ratio: 16 / 10;
-	}
-</style>
