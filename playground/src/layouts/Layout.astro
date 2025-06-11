@@ -59,7 +59,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 								const preserve = !trigger?.matches('[data-preserve-scroll]');
 								return preserve;
 							},
-							offset: (target, container) => {
+							offset: (target, container, { top, left }) => {
 								const headerHeight =
 									document.querySelector('#header')!.clientHeight + 20;
 
@@ -67,6 +67,9 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 								if (container.matches(':root')) {
 									return headerHeight;
 								}
+
+								const maxTop = container.scrollHeight - container.clientHeight;
+								if (top === maxTop) return 0;
 
 								// scrolling a fixed div
 								return getComputedStyle(container).position === 'fixed'

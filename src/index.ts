@@ -2,6 +2,12 @@ import Plugin from '@swup/plugin';
 import { type Handler, type Visit, queryAll } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
+type OffsetCallback = (
+	scrollTarget: Element,
+	scrollContainer: Element,
+	position: ScrollPosition
+) => number | ScrollPosition;
+
 export type Options = {
 	doScrollingRightAway: boolean;
 	animateScroll: {
@@ -10,10 +16,7 @@ export type Options = {
 		samePage: boolean;
 	};
 	getAnchorElement?: (hash: string) => Element | null;
-	offset:
-		| number
-		| ScrollPosition
-		| ((scrollTarget: Element, scrollContainer: Element) => number | ScrollPosition);
+	offset: number | ScrollPosition | OffsetCallback;
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
@@ -176,13 +179,17 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (scrollTarget: Element, scrollContainer: Element): ScrollPosition => {
+	getOffset = (
+		scrollTarget: Element,
+		scrollContainer: Element,
+		position: ScrollPosition
+	): ScrollPosition => {
 		let offset: number | ScrollPosition;
 
 		// If options.offset is a function, apply and return it
 		// Otherwise, use the actual offset value
 		if (typeof this.options.offset === 'function') {
-			offset = this.options.offset(scrollTarget, scrollContainer);
+			offset = this.options.offset(scrollTarget, scrollContainer, position);
 		} else {
 			offset = this.options.offset;
 		}
@@ -481,7 +488,8 @@ export default class SwupScrollPlugin extends Plugin {
 		scrollActions.forEach(({ top, left, el: scrollContainer }) => {
 			const { top: topOffset = 0, left: leftOffset = 0 } = this.getOffset(
 				scrollTarget,
-				scrollContainer
+				scrollContainer,
+				{ top, left }
 			);
 			this.scrollTo(
 				{ top: top - topOffset, left: left - leftOffset },
