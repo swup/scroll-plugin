@@ -63,16 +63,14 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 								const headerHeight =
 									document.querySelector('#header')!.clientHeight + 20;
 
-								if (!container) return 0;
-
 								// scrolling the root
-								if (container.matches('html')) {
-									return { top: headerHeight, left: 0 };
+								if (container.matches(':root')) {
+									return headerHeight;
 								}
 
 								// scrolling a fixed div
 								return getComputedStyle(container).position === 'fixed'
-									? { top: headerHeight, left: 0 }
+									? headerHeight
 									: 0;
 							}
 						})
