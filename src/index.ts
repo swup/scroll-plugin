@@ -177,8 +177,6 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Get the offset for a scroll
 	 */
 	getOffset = (scrollTarget: Element, scrollContainer: Element): ScrollPosition => {
-		if (!scrollTarget) return { top: 0, left: 0 };
-
 		let offset: number | ScrollPosition;
 
 		// If options.offset is a function, apply and return it
