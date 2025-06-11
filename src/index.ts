@@ -187,12 +187,19 @@ export default class SwupScrollPlugin extends Plugin {
 			offset = this.options.offset;
 		}
 
-		// Normalize offset to an object, sharing top value for both top and left if it's a number
-		if (typeof offset === 'object') {
+		/**
+		 * Normalize offset to an object
+		 * If offset is a number, use it as top and set left to 0
+		 */
+		if (
+			typeof offset === 'object' &&
+			typeof offset.top === 'number' &&
+			typeof offset.left === 'number'
+		) {
 			return offset;
 		} else {
 			const top = parseInt(String(offset ?? ''), 10) || 0;
-			return { top, left: top };
+			return { top, left: 0 };
 		}
 	};
 
