@@ -2,7 +2,7 @@ import Plugin from '@swup/plugin';
 import { type Handler, type Visit, queryAll } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
-type OffsetCallback = (
+export type OffsetCallback = (
 	scrollTarget: Element,
 	scrollContainer: Element,
 	position: ScrollPosition
