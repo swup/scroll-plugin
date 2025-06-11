@@ -13,7 +13,7 @@ export type Options = {
 	offset:
 		| number
 		| ScrollPosition
-		| ((scrollTarget?: Element, scrollContainer?: Element) => number | ScrollPosition);
+		| ((scrollTarget: Element, scrollContainer: Element) => number | ScrollPosition);
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
