@@ -2,6 +2,12 @@ import Plugin from '@swup/plugin';
 import { type Handler, type Visit, queryAll } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
+export type OffsetCallback = (
+	scrollTarget: Element,
+	scrollContainer: Element,
+	position: ScrollPosition
+) => number | ScrollPosition;
+
 export type Options = {
 	doScrollingRightAway: boolean;
 	animateScroll: {
@@ -10,7 +16,7 @@ export type Options = {
 		samePage: boolean;
 	};
 	getAnchorElement?: (hash: string) => Element | null;
-	offset: number | ((scrollTarget?: Element, scrollContainer?: Element) => number);
+	offset: number | ScrollPosition | OffsetCallback;
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
@@ -30,7 +36,11 @@ type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
-		scrollTo?: (offset: number, animate?: boolean, scrollContainer?: Element) => void;
+		scrollTo?: (
+			position: number | ScrollPosition,
+			animate?: boolean,
+			scrollContainer?: Element
+		) => void;
 	}
 
 	export interface VisitScroll {
@@ -86,8 +96,7 @@ export default class SwupScrollPlugin extends Plugin {
 		swup.hooks.create('scroll:end');
 
 		/* Add scrollTo method to swup instance */
-		swup.scrollTo = (y: number, animate = true, element?: Element) =>
-			this.scrollTo(y, animate, element);
+		swup.scrollTo = this.scrollTo.bind(this);
 
 		/**
 		 * Disable browser scroll restoration for history visits
@@ -170,16 +179,35 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (scrollTarget?: Element, scrollContainer?: Element): number => {
-		if (!scrollTarget) return 0;
+	getOffset = (
+		scrollTarget: Element,
+		scrollContainer: Element,
+		position: ScrollPosition
+	): ScrollPosition => {
+		let offset: number | ScrollPosition;
 
 		// If options.offset is a function, apply and return it
+		// Otherwise, use the actual offset value
 		if (typeof this.options.offset === 'function') {
-			return parseInt(String(this.options.offset(scrollTarget, scrollContainer)), 10);
+			offset = this.options.offset(scrollTarget, scrollContainer, position);
+		} else {
+			offset = this.options.offset;
 		}
 
-		// Otherwise, return the sanitized offset
-		return parseInt(String(this.options.offset), 10);
+		/**
+		 * Normalize offset to an object
+		 * If offset is a number, use it as top and set left to 0
+		 */
+		if (
+			typeof offset === 'object' &&
+			typeof offset.top === 'number' &&
+			typeof offset.left === 'number'
+		) {
+			return offset;
+		} else {
+			const top = parseInt(String(offset ?? ''), 10) || 0;
+			return { top, left: 0 };
+		}
 	};
 
 	/**
@@ -190,10 +218,10 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Scroll to top on `scroll:top` hook
+	 * Scroll to top/left on `scroll:top` hook
 	 */
 	handleScrollToTop: Handler<'scroll:top'> = (visit) => {
-		this.swup.scrollTo?.(0, visit.scroll.animate);
+		this.scrollTo({ top: 0, left: 0 }, visit.scroll.animate);
 		return true;
 	};
 
@@ -291,10 +319,10 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getCachedScrollPositions(visit.to.url);
-		const top = scrollPositions?.window?.top || 0;
+		const { top = 0, left = 0 } = scrollPositions?.window || { top: 0, left: 0 };
 
 		// Give possible JavaScript time to execute before scrolling
-		requestAnimationFrame(() => this.swup.scrollTo?.(top, visit.scroll.animate));
+		requestAnimationFrame(() => this.scrollTo({ top, left }, visit.scroll.animate));
 
 		visit.scroll.scrolledToContent = true;
 	};
@@ -400,7 +428,9 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Scroll to a specific offset, with optional animation.
 	 */
-	scrollTo(y: number, animate = true, scrollContainer?: Element): void {
+	scrollTo(position: number | ScrollPosition, animate = true, scrollContainer?: Element): void {
+		const { top = 0, left = 0 } = typeof position === 'number' ? { top: position } : position;
+
 		// Create dummy visit
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
 		const visit = this.swup.createVisit({ to: this.swup.location.url });
@@ -438,7 +468,8 @@ export default class SwupScrollPlugin extends Plugin {
 		this.swup.hooks.callSync('scroll:start', visit, undefined);
 
 		scrollContainer.scrollTo({
-			top: y,
+			top,
+			left,
 			behavior: animate ? 'smooth' : 'instant'
 		});
 	}
@@ -454,9 +485,17 @@ export default class SwupScrollPlugin extends Plugin {
 			inline: 'start'
 		});
 
-		scrollActions.forEach(({ el: scrollContainer, top }) => {
-			const offset = this.getOffset(scrollTarget, scrollContainer);
-			this.scrollTo(top - offset, animate, scrollContainer);
+		scrollActions.forEach(({ top, left, el: scrollContainer }) => {
+			const { top: topOffset = 0, left: leftOffset = 0 } = this.getOffset(
+				scrollTarget,
+				scrollContainer,
+				{ top, left }
+			);
+			this.scrollTo(
+				{ top: top - topOffset, left: left - leftOffset },
+				animate,
+				scrollContainer
+			);
 		});
 	}
 }

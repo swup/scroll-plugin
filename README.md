@@ -139,18 +139,23 @@ To highlight the current target element, use the `data-swup-scroll-target` attri
 
 ### Offset
 
-Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
+Offset to substract from the final scroll position, to account for fixed headers. Can be either a
+static number or a function that returns a value based on the scroll target. To apply differing
+offsets for vertical and horizontal scrolling, return an object with `top` and `left` properties.
 
 ```javascript
 {
   // Number: fixed offset in px
   offset: 30,
 
+  // Object: fixed vertical and horizontal offset in px
+  offset: { top: 30, left: 10 },
+
   // Function: calculate offset before scrolling
   offset: () => document.querySelector('#header').offsetHeight,
 
-  // The scroll target element is passed into the function
-  offset: target => target.offsetHeight * 2,
+  // The scroll target and container are passed into the function
+  offset: (scrollTarget, scrollContainer) => target.offsetHeight * 2,
 }
 ```
 

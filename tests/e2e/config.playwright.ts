@@ -73,8 +73,8 @@ export default defineConfig({
     url: baseURL,
     command:
       process.env.PLAYWRIGHT_ENV === "dev"
-        ? "npm run fixtures:dev"
-        : "npm run fixtures:serve",
+        ? "npm run playground:dev"
+        : "npm run playground:serve",
     reuseExistingServer: !process.env.CI,
   },
 });
