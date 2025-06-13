@@ -2,6 +2,8 @@ import Plugin from '@swup/plugin';
 import { type Handler, type Visit, queryAll } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
+import { getRootScrollContainer } from './util.js';
+
 export type OffsetCallback = (
 	scrollTarget: Element,
 	scrollContainer: Element,
@@ -435,7 +437,7 @@ export default class SwupScrollPlugin extends Plugin {
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
 		const visit = this.swup.createVisit({ to: this.swup.location.url });
 
-		scrollContainer ??= this.getRootScrollContainer();
+		scrollContainer ??= getRootScrollContainer();
 
 		const eventTarget = scrollContainer instanceof HTMLHtmlElement ? window : scrollContainer;
 
