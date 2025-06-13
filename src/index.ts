@@ -1,8 +1,8 @@
 import Plugin from '@swup/plugin';
-import { type Handler, type Visit, queryAll } from 'swup';
+import { type Handler, type HistoryState, type Visit, queryAll, updateHistoryRecord } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
-import { getRootScrollContainer } from './util.js';
+import { debounce, getRootScrollContainer } from './util.js';
 
 export type OffsetCallback = (
 	scrollTarget: Element,
@@ -34,6 +34,20 @@ type ScrollPositionsCacheEntry = {
 	containers: ScrollPosition[];
 };
 
+export interface ScrollPositions {
+	[key: string]: ScrollPosition;
+}
+
+export interface HistoryScrollRestoration {
+	top: number;
+	left: number;
+	el?: HTMLElement;
+}
+
+export interface HistoryScrollRestorations {
+	[key: string]: HistoryScrollRestoration;
+}
+
 type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
@@ -55,6 +69,17 @@ declare module 'swup' {
 	export interface HookDefinitions {
 		'scroll:start': undefined;
 		'scroll:end': undefined;
+		'scroll:store': { scroll: ScrollPositions };
+		'scroll:restore': { restore: HistoryScrollRestorations; options: ScrollIntoViewOptions };
+	}
+
+	export interface HistoryState {
+		url: string;
+		source: 'swup';
+		random: number;
+		index?: number;
+		scroll?: ScrollPositions;
+		[key: string]: unknown;
 	}
 }
 
@@ -88,7 +113,10 @@ export default class SwupScrollPlugin extends Plugin {
 
 	constructor(options: Partial<Options> = {}) {
 		super();
+
 		this.options = { ...this.defaults, ...options };
+
+		this.storeScrollPosition = debounce(this.storeScrollPosition.bind(this), 100);
 	}
 
 	mount() {
@@ -96,19 +124,19 @@ export default class SwupScrollPlugin extends Plugin {
 
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
+		swup.hooks.create('scroll:store');
+		swup.hooks.create('scroll:restore');
 
 		/* Add scrollTo method to swup instance */
 		swup.scrollTo = this.scrollTo.bind(this);
 
 		/**
 		 * Disable browser scroll restoration for history visits
-		 * if `swup.options.animateHistoryBrowsing` is true
 		 * Store the previous setting to be able to properly restore it on unmount
 		 */
 		this.previousScrollRestoration = window.history.scrollRestoration;
-		if (swup.options.animateHistoryBrowsing) {
-			window.history.scrollRestoration = 'manual';
-		}
+		window.history.scrollRestoration = 'manual';
+		window.addEventListener('scroll', this.storeScrollPosition, { passive: true });
 
 		/**
 		 * Mark the current scroll target element with a `data-swup-scroll-target` attribute
@@ -151,6 +179,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		window.removeEventListener('popstate', this.updateScrollTarget);
 		window.removeEventListener('hashchange', this.updateScrollTarget);
+		window.removeEventListener('scroll', this.storeScrollPosition);
 
 		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
@@ -499,5 +528,34 @@ export default class SwupScrollPlugin extends Plugin {
 				scrollContainer
 			);
 		});
+	}
+
+	storeScrollPosition() {
+		// Create temporary visit to avoid re-using the previous one
+		const visit = this.swup.createVisit({ to: '' });
+		const scroll: ScrollPositions = { root: { top: window.scrollX, left: window.scrollY } };
+
+		this.swup.hooks.callSync('scroll:store', visit, { scroll }, (visit, { scroll }) => {
+			updateHistoryRecord(null, { scroll });
+		});
+	}
+
+	restoreScrollPosition(visit: Visit) {
+		const options: ScrollIntoViewOptions = { behavior: 'instant' };
+
+		const state = visit.history.state ?? (window.history.state as HistoryState);
+		const position = state?.scroll?.window ?? { x: 0, y: 0 };
+		const restore: HistoryScrollRestorations = { root: { ...position, el: null } };
+
+		this.swup.hooks.callSync(
+			'scroll:restore',
+			visit,
+			{ restore, options },
+			(visit, { restore, options }) => {
+				for (const { el, top, left } of Object.values(restore)) {
+					this.scrollTo({ top, left }, true, el);
+				}
+			}
+		);
 	}
 }
