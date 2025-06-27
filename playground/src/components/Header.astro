@@ -24,13 +24,13 @@ const isExternal = (href: string) => href.startsWith('http');
 	id="header"
 	class="text-swup-purple flex gap-2 border-b-2 p-3 sticky z-10 top-0 bg-white items-center font-bold whitespace-nowrap"
 >
-	<a id="homelink" href="/" class="flex gap-2 items-center">
+	<a href="/" class="flex gap-2 items-center">
 		<img
 			src="https://swup.js.org/assets/images/swup-logo-icon.svg"
 			alt="Swup Logo"
 			class="aspect-square w-8"
 		/>
-		<span class="flex gap-1 items-center">
+		<span class="flex gap-1 items-center" data-testid="title">
 			<span class="block"><span class="hidden sm:inline-block">@swup/</span>scroll-plugin</span>
 			{path && <ArrowRightIcon size={18} /> <span>{path}</span>}
 		</span>
