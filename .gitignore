@@ -24,3 +24,12 @@ pnpm-debug.log*
 # Astro
 /playground/dist
 /playground/.astro
+
+# Testing tools and outputs
+/tests/e2e/reports/
+/tests/e2e/results/
+/playwright/.cache/
+/playwright-report/
+/coverage
+.nyc_output
+report.json
