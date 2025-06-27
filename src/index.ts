@@ -89,6 +89,9 @@ export default class SwupScrollPlugin extends Plugin {
 		this.options = { ...this.defaults, ...options };
 	}
 
+	/**
+	 * Run when the plugin is mounted
+	 */
 	mount() {
 		const swup = this.swup;
 
@@ -138,7 +141,7 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
-	 * Runs when the plugin is unmounted
+	 * Run when the plugin is unmounted
 	 */
 	unmount() {
 		super.unmount();
@@ -155,7 +158,7 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
-	 * Detects if a scroll should be animated, based on context
+	 * Detect if a scroll should be animated, based on context
 	 */
 	shouldAnimate(context: keyof Options['animateScroll']): boolean {
 		if (typeof this.options.animateScroll === 'boolean') {
@@ -240,7 +243,7 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Attempts to scroll to an anchor
+	 * Attempt to scroll to an anchor
 	 */
 	maybeScrollToAnchor(hash?: string, animate: boolean = false): boolean {
 		if (!hash) {
@@ -298,7 +301,7 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Scrolls the window
+	 * Scroll between pages
 	 */
 	doScrollingBetweenPages = (visit: Visit): void => {
 		// Bail early on popstate if not animated: browser will handle it
@@ -346,7 +349,7 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Stores the scroll positions for the current URL
+	 * Store the scroll positions for the current URL
 	 */
 	cacheScrollPositions(url: string): void {
 		const cacheKey = this.swup.resolveUrl(url);
