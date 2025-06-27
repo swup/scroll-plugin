@@ -85,39 +85,41 @@ export async function setScrollPluginOption(page: Page, option: keyof Options, v
 	);
 }
 
+// Serialize an object that contains functions
+function serialize(obj: unknown) {
+	return JSON.stringify(obj, (key, value) => {
+		if (typeof value === 'function') {
+			return `__func__:${value.toString()}`;
+		}
+		return value;
+	});
+}
+
+// Unserialize an object that contains functions
+function unserialize(json: string) {
+	return JSON.parse(json, (key, value) => {
+		if (typeof value === 'string' && value.startsWith('__func__:')) {
+			const functionCode = value.slice('__func__:'.length);
+			return new Function(`return (${functionCode})`)(); // creates a new function
+		}
+		return value;
+	});
+}
+
 /**
  * Dynamically set scroll plugin options in the browser.
  * Serializes and de-serializes function callbacks
  */
 export async function setScrollPluginOptions(page: Page, options: Partial<Options>) {
-	// Serialize: convert any functions into stringified versions with a "fn:" prefix
-	const serializedOptions = Object.fromEntries(
-		Object.entries(options).map(([key, value]) => {
-			if (typeof value === 'function') {
-				return [key, `__fn__:${value.toString()}`];
-			}
-			return [key, value];
-		})
-	);
-
 	// Pass into browser context and reconstruct any functions from strings
-	return page.evaluate((options) => {
-		for (const key in options) {
-			const value = options[key];
-			if (typeof value === 'string' && value.startsWith('__fn__:')) {
-				try {
-					const functionBody = value.slice('__fn__:'.length);
-					options[key] = new Function(`return (${functionBody}).apply(this, arguments);`);
-					console.log(options[key]);
-				} catch (e) {
-					console.error(`Failed to unserialize function for key "${key}":`, e);
-				}
-			}
-		}
-
-		(window as any).scrollPlugin.options = {
-			...(window as any).scrollPlugin.options,
-			...options
-		};
-	}, serializedOptions);
+	return page.evaluate(
+		({ options, unserializeFn }) => {
+			const unserialize = new Function(`return (${unserializeFn})`)();
+			(window as any).scrollPlugin.options = {
+				...(window as any).scrollPlugin.options,
+				...unserialize(options)
+			};
+		},
+		{ options: serialize(options), unserializeFn: unserialize.toString() }
+	);
 }
