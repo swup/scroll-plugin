@@ -74,4 +74,37 @@ test.describe('Offset', () => {
 
 		expect(top).toBe(Math.floor(height / 2));
 	});
+
+	test('Accepts an object for the offset callback', async ({ page }) => {
+		await setScrollPluginOptions(page, {
+			offset: () => ({ top: 100, left: 200 })
+		});
+
+		await page.locator('[href="#horizontal_tile--15"]').click();
+
+		await wait(1000);
+
+		const target = page.getByTestId('horizontal_tile--15');
+		const container = page.getByTestId('horizontal-scroll-container');
+
+		await expect(target).toHaveAttribute('data-swup-scroll-target', '');
+		await expect(target).toBeInViewport();
+
+		const rects = {
+			target: await target.evaluate((el) => {
+				return el.getBoundingClientRect();
+			}),
+			container: await container.evaluate((el) => {
+				return el.getBoundingClientRect();
+			})
+		};
+
+		const result = {
+			top: rects.target.top,
+			left: rects.target.left - rects.container.left
+		}
+
+		expect(Math.abs(result.top - 100)).toBeLessThanOrEqual(1);
+		expect(Math.abs(result.left - 200)).toBeLessThanOrEqual(1);
+	});
 });

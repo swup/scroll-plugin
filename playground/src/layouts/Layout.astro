@@ -62,6 +62,8 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 						return headerHeight;
 					}
 
+					return { top: 50, left: 100 };
+
 					const maxTop = container.scrollHeight - container.clientHeight;
 					if (top === maxTop) return 0;
 
