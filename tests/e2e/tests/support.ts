@@ -1,5 +1,7 @@
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import type { Options } from '../../../src/index.ts';
+import SwupScrollPlugin from '../../../src/index.ts';
 
 type ScrollPosition = {
 	x: number;
@@ -72,4 +74,48 @@ export async function expectScrollPosition(page: Page, expected: ScrollPosition,
 
 function roundTwoDecimals(value: number) {
 	return Math.round(value * 100) / 100;
+}
+
+export async function setScrollPluginOption(page: Page, option: keyof Options, value: any) {
+	return page.evaluate(
+		({ option, value }) => {
+			(window as any).scrollPlugin.options[option] = value;
+		},
+		{ option, value }
+	);
+}
+
+/**
+ * Dynamically set scroll plugin options in the browser.
+ * Serializes and de-serializes function callbacks
+ */
+export async function setScrollPluginOptions(page: Page, options: Partial<Options>) {
+	// Serialize: convert any functions into stringified versions with a "fn:" prefix
+	const serializedOptions = Object.fromEntries(
+		Object.entries(options).map(([key, value]) => {
+			if (typeof value === 'function') {
+				return [key, `fn:${value.toString()}`];
+			}
+			return [key, value];
+		})
+	);
+
+	// Pass into browser context and reconstruct any functions from strings
+	return page.evaluate((options) => {
+		for (const key in options) {
+			const value = options[key];
+			if (typeof value === 'string' && value.startsWith('fn:')) {
+				try {
+					options[key] = eval(value.slice(3));
+				} catch (e) {
+					console.error(`Failed to eval function for key "${key}":`, e);
+				}
+			}
+		}
+
+		(window as any).scrollPlugin.options = {
+			...(window as any).scrollPlugin.options,
+			...options
+		};
+	}, serializedOptions);
 }

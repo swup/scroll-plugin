@@ -45,6 +45,39 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 		<script>
 			import Swup from 'swup';
 			import SwupScrollPlugin from '../../../src/index.js';
+
+			const scrollPlugin = new SwupScrollPlugin({
+				markScrollTarget: true,
+				shouldResetScrollPosition: (trigger) => {
+					const preserve = !trigger?.matches('[data-swup-preserve-scroll]');
+					return preserve;
+				},
+				getAnchorElement: (hash: string) =>
+					document.querySelector(`[data-testid="${hash.replace('#', '')}"]`),
+				offset: (target, container, { top, left }) => {
+					const headerHeight = document.querySelector('#header')!.clientHeight + 20;
+
+					// scrolling the root
+					if (container.matches(':root')) {
+						return headerHeight;
+					}
+
+					const maxTop = container.scrollHeight - container.clientHeight;
+					if (top === maxTop) return 0;
+
+					// scrolling a fixed div
+					return getComputedStyle(container).position === 'fixed' ? headerHeight : 0;
+				}
+			});
+
+			// Make the window.scrollPlugin available to e2e tests
+			declare global {
+				interface Window {
+					scrollPlugin: SwupScrollPlugin;
+				}
+			}
+			window.scrollPlugin = scrollPlugin;
+
 			document.addEventListener('DOMContentLoaded', (event) => {
 				const swup = new Swup({
 					containers: ['#swup', '#header'],
@@ -53,32 +86,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 						new SwupPreloadPlugin({ preloadVisibleLinks: true }),
 						// @ts-expect-error
 						new SwupFadeTheme(),
-						new SwupScrollPlugin({
-							markScrollTarget: true,
-							shouldResetScrollPosition: (trigger) => {
-								const preserve = !trigger?.matches('[data-swup-preserve-scroll]');
-								return preserve;
-							},
-							getAnchorElement: (hash: string) =>
-								document.querySelector(`[data-testid="${hash.replace('#', '')}"]`),
-							offset: (target, container, { top, left }) => {
-								const headerHeight =
-									document.querySelector('#header')!.clientHeight + 20;
-
-								// scrolling the root
-								if (container.matches(':root')) {
-									return headerHeight;
-								}
-
-								const maxTop = container.scrollHeight - container.clientHeight;
-								if (top === maxTop) return 0;
-
-								// scrolling a fixed div
-								return getComputedStyle(container).position === 'fixed'
-									? headerHeight
-									: 0;
-							}
-						})
+						scrollPlugin
 					]
 				});
 			});
