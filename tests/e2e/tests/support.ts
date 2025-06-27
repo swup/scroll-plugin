@@ -43,7 +43,7 @@ export function scrollToEnd(page: Page, testId?: string) {
 	);
 }
 
-export function sleep(timeout = 0): Promise<void> {
+export function wait(timeout = 0): Promise<void> {
 	return new Promise((resolve) => setTimeout(() => resolve(undefined), timeout));
 }
 
