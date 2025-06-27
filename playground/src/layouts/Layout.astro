@@ -44,7 +44,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 
 		<script>
 			import Swup from 'swup';
-			import ScrollPlugin from '../../../src/index.js';
+			import SwupScrollPlugin from '../../../src/index.js';
 			document.addEventListener('DOMContentLoaded', (event) => {
 				const swup = new Swup({
 					containers: ['#swup', '#header'],
@@ -53,12 +53,14 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 						new SwupPreloadPlugin({ preloadVisibleLinks: true }),
 						// @ts-expect-error
 						new SwupFadeTheme(),
-						new ScrollPlugin({
+						new SwupScrollPlugin({
 							markScrollTarget: true,
 							shouldResetScrollPosition: (trigger) => {
 								const preserve = !trigger?.matches('[data-preserve-scroll]');
 								return preserve;
 							},
+							getAnchorElement: (hash: string) =>
+								document.querySelector(`[data-testid="${hash.replace('#', '')}"]`),
 							offset: (target, container, { top, left }) => {
 								const headerHeight =
 									document.querySelector('#header')!.clientHeight + 20;

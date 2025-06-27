@@ -5,14 +5,13 @@ import Nav from './Nav.astro';
 ---
 
 <div class="space-y-5 mb-10">
-	<section id="vertical">
+	<section data-testid="vertical">
 		<h2>Vertical</h2>
 		<div
 			class="border-2 rounded-sm overflow-y-auto h-50 w-full --vertical"
 			data-swup-scroll-container
-			data-testid="vertical"
 		>
-			<Tiles amount={100} direction="vertical" uniqueid="vertical" />
+			<Tiles amount={100} direction="vertical" idPrefix="vertical" />
 		</div>
 	</section>
 
@@ -27,14 +26,13 @@ import Nav from './Nav.astro';
 		]}
 	/>
 
-	<section id="horizontal">
+	<section data-testid="horizontal">
 		<h2>Horizontal</h2>
 		<div
 			class="border-2 rounded-sm w-full overflow-x-auto --horizontal"
 			data-swup-scroll-container
-			data-testid="horizontal"
 		>
-			<Tiles amount={50} direction="horizontal" uniqueid="horizontal" />
+			<Tiles amount={50} direction="horizontal" idPrefix="horizontal" />
 		</div>
 	</section>
 
@@ -49,14 +47,13 @@ import Nav from './Nav.astro';
 		]}
 	/>
 
-	<section id="both-axis">
+	<section data-testid="both-axis">
 		<h2>Both axis</h2>
 		<div
 			class="border-2 rounded-sm w-full h-100 overflow-auto"
 			data-swup-scroll-container
-			data-testid="both-axis"
 		>
-			<Table rows={20} columns={20} uniqueid="both-axis" />
+			<Table rows={20} columns={20} idPrefix="both-axis" />
 		</div>
 	</section>
 
