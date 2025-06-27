@@ -65,7 +65,7 @@
     "@playwright/test": "^1.52.0",
     "@swup/cli": "^5.0.1",
     "@tailwindcss/vite": "^4.1.8",
-    "astro": "^5.9.1",
+    "astro": "^5.10.1",
     "astro-feather": "^1.0.0",
     "jsdom": "^26.1.0",
     "swup": "^4.8.2",
