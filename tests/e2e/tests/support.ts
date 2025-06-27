@@ -94,7 +94,7 @@ export async function setScrollPluginOptions(page: Page, options: Partial<Option
 	const serializedOptions = Object.fromEntries(
 		Object.entries(options).map(([key, value]) => {
 			if (typeof value === 'function') {
-				return [key, `fn:${value.toString()}`];
+				return [key, `__fn__:${value.toString()}`];
 			}
 			return [key, value];
 		})
@@ -104,11 +104,13 @@ export async function setScrollPluginOptions(page: Page, options: Partial<Option
 	return page.evaluate((options) => {
 		for (const key in options) {
 			const value = options[key];
-			if (typeof value === 'string' && value.startsWith('fn:')) {
+			if (typeof value === 'string' && value.startsWith('__fn__:')) {
 				try {
-					options[key] = eval(value.slice(3));
+					const functionBody = value.slice('__fn__:'.length);
+					options[key] = new Function(`return (${functionBody}).apply(this, arguments);`);
+					console.log(options[key]);
 				} catch (e) {
-					console.error(`Failed to eval function for key "${key}":`, e);
+					console.error(`Failed to unserialize function for key "${key}":`, e);
 				}
 			}
 		}

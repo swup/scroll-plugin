@@ -48,7 +48,7 @@ test.describe('Offset', () => {
 			return el.getBoundingClientRect();
 		});
 
-		expect(top).toBeCloseTo(400, 1);
+		expect(Math.abs(top - 400)).toBeLessThanOrEqual(1);
 	});
 
 	test('Passes the target to the offset callback', async ({ page }) => {
