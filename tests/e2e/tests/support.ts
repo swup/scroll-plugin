@@ -34,10 +34,16 @@ export function scrollToEnd(page: Page, testId?: string) {
 		(args) => {
 			if (args.testId) {
 				const el = document.querySelector(`[data-testid="${args.testId}"]`)!;
-				el.scrollTo(el.scrollWidth, el.scrollHeight);
+				el.scrollTo({
+					left: el.scrollWidth,
+					top: el.scrollHeight
+				});
 				return;
 			}
-			window.scrollTo(document.body.scrollWidth, document.body.scrollHeight);
+			window.scrollTo({
+				left: document.body.scrollWidth,
+				top: document.body.scrollHeight
+			});
 		},
 		{ testId }
 	);

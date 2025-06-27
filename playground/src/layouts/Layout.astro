@@ -56,7 +56,7 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 						new SwupScrollPlugin({
 							markScrollTarget: true,
 							shouldResetScrollPosition: (trigger) => {
-								const preserve = !trigger?.matches('[data-preserve-scroll]');
+								const preserve = !trigger?.matches('[data-swup-preserve-scroll]');
 								return preserve;
 							},
 							getAnchorElement: (hash: string) =>

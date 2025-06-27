@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { wait } from './support';
 
-test.describe('API', () => {
+test.describe('Anchors', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/anchors-1/');
 	});
