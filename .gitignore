@@ -14,3 +14,13 @@ wiki-wishlist
 .idea
 dist
 /plugins
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Astro
+/playground/dist
+/playground/.astro
