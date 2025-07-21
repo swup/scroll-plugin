@@ -139,7 +139,7 @@ export default class SwupScrollPlugin extends Plugin {
 		this.before('link:anchor', this.onBeforeLinkToAnchor, { priority: -1 });
 		this.replace('scroll:anchor', this.handleScrollToAnchor);
 
-		// store scroll container positions before unload
+		// store scroll positions between page reloads
 		window.addEventListener('beforeunload', this.onBeforeUnload);
 		this.restoreScrollPositionsFromHistoryState();
 	}
