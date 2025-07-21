@@ -398,10 +398,17 @@ export default class SwupScrollPlugin extends Plugin {
 		const scrollPositions = window.history.state?.scrollPositions as
 			| ScrollPositions
 			| undefined;
-		if (scrollPositions?.window) {
+		if (scrollPositions?.window && this.validateScrollPosition(scrollPositions.window)) {
 			this.scrollTo({ ...scrollPositions.window }, false);
 		}
 		this.restoreScrollContainers(scrollPositions);
+	}
+
+	/**
+	 * Check if this is a valid scroll position
+	 */
+	validateScrollPosition(object: any): boolean {
+		return typeof object?.top === 'number' && typeof object?.left === 'number';
 	}
 
 	/**
@@ -415,7 +422,7 @@ export default class SwupScrollPlugin extends Plugin {
 		// cycle through all containers on the current page and restore their scroll positions, if appropriate
 		queryAll(this.options.scrollContainers).forEach((el, index) => {
 			const scrollPosition = scrollPositions.containers[index];
-			if (!scrollPosition) return;
+			if (!this.validateScrollPosition(scrollPosition)) return;
 			this.scrollTo({ ...scrollPosition }, false, el);
 		});
 	}
