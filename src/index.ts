@@ -1,5 +1,5 @@
 import Plugin from '@swup/plugin';
-import { type Handler, type Visit, queryAll } from 'swup';
+import { type Handler, type Visit, queryAll, updateHistoryRecord } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
 
 export type OffsetCallback = (
@@ -27,12 +27,12 @@ type ScrollPosition = {
 	left: number;
 };
 
-type ScrollPositionsCacheEntry = {
+type ScrollPositions = {
 	window: ScrollPosition;
 	containers: ScrollPosition[];
 };
 
-type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
+type ScrollPositionsCache = Record<string, ScrollPositions>;
 
 declare module 'swup' {
 	export interface Swup {
@@ -138,6 +138,10 @@ export default class SwupScrollPlugin extends Plugin {
 		// scroll to an anchor on the same page
 		this.before('link:anchor', this.onBeforeLinkToAnchor, { priority: -1 });
 		this.replace('scroll:anchor', this.handleScrollToAnchor);
+
+		// store scroll container positions before unload
+		window.addEventListener('beforeunload', this.onBeforeUnload);
+		this.restoreScrollPositionsFromHistoryState();
 	}
 
 	/**
@@ -297,7 +301,7 @@ export default class SwupScrollPlugin extends Plugin {
 		if (!visit.scroll.scrolledToContent) {
 			this.doScrollingBetweenPages(visit);
 		}
-		this.restoreScrollContainers(visit.to.url);
+		this.restoreScrollContainers(this.getCachedScrollPositions(visit.to.url));
 	};
 
 	/**
@@ -351,7 +355,7 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Store the scroll positions for the current URL
 	 */
-	cacheScrollPositions(url: string): void {
+	cacheScrollPositions(url: string): ScrollPositions {
 		const cacheKey = this.swup.resolveUrl(url);
 
 		// retrieve the current scroll position for all containers
@@ -367,6 +371,8 @@ export default class SwupScrollPlugin extends Plugin {
 		};
 
 		this.cachedScrollPositions[cacheKey] = positions;
+
+		return positions;
 	}
 
 	/**
@@ -380,27 +386,37 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the stored scroll positions for a given URL from the cache
 	 */
-	getCachedScrollPositions(url: string): ScrollPositionsCacheEntry | undefined {
+	getCachedScrollPositions(url: string): ScrollPositions | undefined {
 		const cacheKey = this.swup.resolveUrl(url);
 		return this.cachedScrollPositions[cacheKey];
 	}
 
 	/**
-	 * Restore the scroll positions for all matching scrollContainers
+	 * Restore scroll positions from the history state (after a reload)
 	 */
-	restoreScrollContainers(url: string): void {
-		// get the stored scroll positions from the cache
-		const scrollPositions = this.getCachedScrollPositions(url);
-		if (!scrollPositions || scrollPositions.containers.length === 0) {
+	restoreScrollPositionsFromHistoryState() {
+		const scrollPositions = window.history.state?.scrollPositions as
+			| ScrollPositions
+			| undefined;
+		if (scrollPositions?.window) {
+			this.scrollTo({ ...scrollPositions.window }, false);
+		}
+		this.restoreScrollContainers(scrollPositions);
+	}
+
+	/**
+	 * Restore the scroll positions for overflowing containers
+	 */
+	restoreScrollContainers(scrollPositions?: ScrollPositions): void {
+		if (!scrollPositions?.containers || scrollPositions.containers.length === 0) {
 			return;
 		}
 
 		// cycle through all containers on the current page and restore their scroll positions, if appropriate
 		queryAll(this.options.scrollContainers).forEach((el, index) => {
 			const scrollPosition = scrollPositions.containers[index];
-			if (scrollPosition == null) return;
-			el.scrollTop = scrollPosition.top;
-			el.scrollLeft = scrollPosition.left;
+			if (!scrollPosition) return;
+			this.scrollTo({ ...scrollPosition }, false, el);
 		});
 	}
 
@@ -501,4 +517,13 @@ export default class SwupScrollPlugin extends Plugin {
 			);
 		});
 	}
+
+	/**
+	 * Store scroll positions in the history state before unload
+	 */
+	onBeforeUnload = (e: BeforeUnloadEvent) => {
+		const url = this.swup.resolveUrl(this.swup.getCurrentUrl({ hash: true }));
+		const scrollPositions = this.cacheScrollPositions(url);
+		updateHistoryRecord(url, { scrollPositions });
+	};
 }
