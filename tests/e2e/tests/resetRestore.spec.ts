@@ -61,4 +61,18 @@ test.describe('Reset & Restore', () => {
 		const target2 = page.getByTestId('both-axis_tile--last');
 		await expect(target2).toBeInViewport();
 	});
+
+	test('Restores the scroll positions after a page reload', async ({ page }) => {
+
+		await page.locator('[href="#both-axis_tile--last"]').click();
+		const target = page.getByTestId('both-axis_tile--last');
+		await expect(target).toHaveAttribute('data-swup-scroll-target', '');
+		await expect(target).toBeInViewport();
+
+		await page.reload();
+
+		const target2 = page.getByTestId('both-axis_tile--last');
+		await expect(target2).toHaveAttribute('data-swup-scroll-target', '');
+		await expect(target2).toBeInViewport();
+	});
 });
