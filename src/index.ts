@@ -398,9 +398,11 @@ export default class SwupScrollPlugin extends Plugin {
 		const scrollPositions = window.history.state?.scrollPositions as
 			| ScrollPositions
 			| undefined;
+
 		if (scrollPositions?.window && this.validateScrollPosition(scrollPositions.window)) {
 			this.scrollTo({ ...scrollPositions.window }, false);
 		}
+
 		this.restoreScrollContainers(scrollPositions);
 	}
 
