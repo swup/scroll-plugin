@@ -52,8 +52,11 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 					const preserve = !trigger?.matches('[data-swup-preserve-scroll]');
 					return preserve;
 				},
-				getAnchorElement: (hash: string) =>
-					document.querySelector(`[data-testid="${hash.replace('#', '')}"]`),
+
+				getAnchorElement: (hash: string) => {
+					return document.querySelector(`[data-testid="${hash.replace('#', '')}"]`);
+				},
+
 				offset: (target, container, { top, left }) => {
 					const headerHeight = document.querySelector('#header')!.clientHeight + 20;
 
@@ -61,8 +64,6 @@ const { title, description, noindex, isFrontPage = false, hideHeader = true, int
 					if (container.matches(':root')) {
 						return headerHeight;
 					}
-
-					return { top: 50, left: 100 };
 
 					const maxTop = container.scrollHeight - container.clientHeight;
 					if (top === maxTop) return 0;
