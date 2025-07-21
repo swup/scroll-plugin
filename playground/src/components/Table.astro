@@ -2,22 +2,22 @@
 interface Props {
 	rows: number;
 	columns: number;
-	uniqueid: string;
+	idPrefix: string;
 	startHue?: number;
 }
-const { rows, columns, uniqueid } = Astro.props;
+const { rows, columns, idPrefix } = Astro.props;
 const startHue = Astro.props.startHue || 0;
 
 const getTestId = (colIndex: number, rowIndex: number): string => {
-	if (rowIndex === 0 && colIndex === 0) return `${uniqueid}_tile--first`;
-	if (rowIndex === rows - 1 && colIndex === columns - 1) return `${uniqueid}_tile--last`;
-	return `${uniqueid}_tile--${colIndex}-${rowIndex}`;
+	if (rowIndex === 0 && colIndex === 0) return `${idPrefix}_tile--first`;
+	if (rowIndex === rows - 1 && colIndex === columns - 1) return `${idPrefix}_tile--last`;
+	return `${idPrefix}_tile--${colIndex}-${rowIndex}`;
 };
 
 const getLabel = (colIndex: number, rowIndex: number): string => {
 	if (rowIndex === 0 && colIndex === 0) return 'first';
 	if (rowIndex === rows - 1 && colIndex === columns - 1) return 'last';
-	return `${colIndex}.${rowIndex}`;
+	return `${colIndex}/${rowIndex}`;
 };
 ---
 
@@ -33,7 +33,6 @@ const getLabel = (colIndex: number, rowIndex: number): string => {
 								style={{
 									'--hue': (startHue + colIndex * 15 + rowIndex * 15) % 360
 								}}
-								id={getTestId(colIndex, rowIndex)}
 								data-testid={getTestId(colIndex, rowIndex)}
 							>
 								{getLabel(colIndex, rowIndex)}
