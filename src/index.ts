@@ -401,7 +401,9 @@ export default class SwupScrollPlugin extends Plugin {
 
 		if (!isScrollPositions(scrollPositions)) return;
 
-		this.scrollTo({ ...scrollPositions.window }, false);
+		if (window.history.scrollRestoration === 'manual') {
+			this.scrollTo({ ...scrollPositions.window }, false);
+		}
 
 		this.restoreScrollContainers(scrollPositions);
 	}

@@ -68,8 +68,6 @@ test.describe('Reset & Restore', () => {
 		/** Important! Simple page.reload() won't work in Playwright+FireFox */
 		await page.evaluate(() => window.location.reload());
 
-		const after = await page.evaluate(() => window.history.state);
-
 		const target2 = page.getByTestId('vertical_tile--last');
 		await expect(target2).toBeInViewport();
 	});
