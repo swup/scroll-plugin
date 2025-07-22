@@ -156,6 +156,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		window.removeEventListener('popstate', this.updateScrollTarget);
 		window.removeEventListener('hashchange', this.updateScrollTarget);
+		window.removeEventListener('beforeunload', this.onBeforeUnload);
 
 		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
