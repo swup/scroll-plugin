@@ -13,8 +13,8 @@ function isObject(value: unknown): boolean {
 export function isScrollPosition(value: unknown): value is ScrollPosition {
 	return (
 		isObject(value) &&
-		typeof (value as any).top === 'number' &&
-		typeof (value as any).left === 'number'
+		typeof (value as Record<string, unknown>).top === 'number' &&
+		typeof (value as Record<string, unknown>).left === 'number'
 	);
 }
 
@@ -24,8 +24,8 @@ export function isScrollPosition(value: unknown): value is ScrollPosition {
 export function isScrollPositions(value: unknown): value is ScrollPositions {
 	return (
 		isObject(value) &&
-		isScrollPosition((value as any).window) &&
-		Array.isArray((value as any).containers) &&
+		isScrollPosition((value as Record<string, unknown>).window) &&
+		Array.isArray((value as Record<string, unknown>).containers) &&
 		(value as any).containers.every(isScrollPosition)
 	);
 }
