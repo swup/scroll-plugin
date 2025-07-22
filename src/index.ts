@@ -417,6 +417,7 @@ export default class SwupScrollPlugin extends Plugin {
 		// cycle through all containers on the current page and restore their scroll positions, if appropriate
 		queryAll(this.options.scrollContainers).forEach((el, index) => {
 			const scrollPosition = scrollPositions.containers[index];
+			if (!scrollPosition) return; // Skip if scrollPosition is undefined
 			this.scrollTo({ ...scrollPosition }, false, el);
 		});
 	}
