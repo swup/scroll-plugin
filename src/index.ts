@@ -540,7 +540,6 @@ export default class SwupScrollPlugin extends Plugin {
 	 */
 	onBeforeUnload = (e: BeforeUnloadEvent) => {
 		const { url } = this.swup.location;
-		console.log({ url });
 		const scrollPositions = this.cacheScrollPositions(url);
 		updateHistoryRecord(url, { scrollPositions });
 	};
