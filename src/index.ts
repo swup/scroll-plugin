@@ -141,7 +141,7 @@ export default class SwupScrollPlugin extends Plugin {
 		this.replace('scroll:anchor', this.handleScrollToAnchor);
 
 		// store scroll positions between page reloads
-		window.addEventListener('beforeunload', this.onBeforeUnload);
+		window.addEventListener('beforeunload', this.storeScrollPositionsInHistoryState);
 		this.restoreScrollPositionsFromHistoryState();
 	}
 
@@ -157,7 +157,7 @@ export default class SwupScrollPlugin extends Plugin {
 
 		window.removeEventListener('popstate', this.updateScrollTarget);
 		window.removeEventListener('hashchange', this.updateScrollTarget);
-		window.removeEventListener('beforeunload', this.onBeforeUnload);
+		window.removeEventListener('beforeunload', this.storeScrollPositionsInHistoryState);
 
 		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
@@ -518,9 +518,9 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
-	 * Store scroll positions in the history state before unload
+	 * Store scroll positions in the history state
 	 */
-	onBeforeUnload = (e: BeforeUnloadEvent) => {
+	storeScrollPositionsInHistoryState = () => {
 		const { url } = this.swup.location;
 		const scrollPositions = this.cacheScrollPositions(url);
 		updateHistoryRecord(null, { scrollPositions });
