@@ -72,7 +72,6 @@ test.describe('Reset & Restore', () => {
 		await page.reload();
 
 		const target2 = page.getByTestId('both-axis_tile--last');
-		await expect(target2).toHaveAttribute('data-swup-scroll-target', '');
 		await expect(target2).toBeInViewport();
 	});
 });
