@@ -410,8 +410,15 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Check if this is a valid scroll position
 	 */
-	validateScrollPosition(object: any): boolean {
-		return typeof object?.top === 'number' && typeof object?.left === 'number';
+	validateScrollPosition(obj: unknown): boolean {
+		return (
+			typeof obj === 'object' &&
+			obj !== null &&
+			'top' in obj &&
+			'left' in obj &&
+			typeof obj.top === 'number' &&
+			typeof obj.left === 'number'
+		);
 	}
 
 	/**
