@@ -532,7 +532,8 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Store scroll positions in the history state before unload
 	 */
 	onBeforeUnload = (e: BeforeUnloadEvent) => {
-		const url = this.swup.resolveUrl(this.swup.getCurrentUrl({ hash: true }));
+		const { url } = this.swup.location;
+		console.log({ url });
 		const scrollPositions = this.cacheScrollPositions(url);
 		updateHistoryRecord(url, { scrollPositions });
 	};
