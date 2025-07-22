@@ -61,13 +61,14 @@ test.describe('Reset & Restore', () => {
 	});
 
 	test('Restores the scroll positions after a page reload', async ({ page, browserName }) => {
-		test.skip(browserName === 'firefox', 'This test is not stable in Firefox');
-
 		await page.locator('[href="#vertical_tile--last"]').click();
 		const target = page.getByTestId('vertical_tile--last');
 		await expect(target).toBeInViewport();
 
-		await page.reload();
+		/** Important! Simple page.reload() won't work in Playwright+FireFox */
+		await page.evaluate(() => window.location.reload());
+
+		const after = await page.evaluate(() => window.history.state);
 
 		const target2 = page.getByTestId('vertical_tile--last');
 		await expect(target2).toBeInViewport();
