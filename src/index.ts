@@ -1,6 +1,7 @@
 import Plugin from '@swup/plugin';
 import { type Handler, type Visit, queryAll, updateHistoryRecord } from 'swup';
 import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
+import { isScrollPositions } from './helpers.js';
 
 export type OffsetCallback = (
 	scrollTarget: Element,
@@ -22,12 +23,12 @@ export type Options = {
 	markScrollTarget?: boolean;
 };
 
-type ScrollPosition = {
+export type ScrollPosition = {
 	top: number;
 	left: number;
 };
 
-type ScrollPositions = {
+export type ScrollPositions = {
 	window: ScrollPosition;
 	containers: ScrollPosition[];
 };
@@ -396,43 +397,24 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Restore scroll positions from the history state (after a reload)
 	 */
 	restoreScrollPositionsFromHistoryState() {
-		const scrollPositions = window.history.state?.scrollPositions as
-			| ScrollPositions
-			| undefined;
+		const scrollPositions = window.history.state?.scrollPositions;
 
-		if (scrollPositions?.window && this.validateScrollPosition(scrollPositions.window)) {
-			this.scrollTo({ ...scrollPositions.window }, false);
-		}
+		if (!isScrollPositions(scrollPositions)) return;
+
+		this.scrollTo({ ...scrollPositions.window }, false);
 
 		this.restoreScrollContainers(scrollPositions);
-	}
-
-	/**
-	 * Check if this is a valid scroll position
-	 */
-	validateScrollPosition(obj: unknown): boolean {
-		return (
-			typeof obj === 'object' &&
-			obj !== null &&
-			'top' in obj &&
-			'left' in obj &&
-			typeof obj.top === 'number' &&
-			typeof obj.left === 'number'
-		);
 	}
 
 	/**
 	 * Restore the scroll positions for overflowing containers
 	 */
 	restoreScrollContainers(scrollPositions?: ScrollPositions): void {
-		if (!scrollPositions?.containers || scrollPositions.containers.length === 0) {
-			return;
-		}
+		if (!isScrollPositions(scrollPositions)) return;
 
 		// cycle through all containers on the current page and restore their scroll positions, if appropriate
 		queryAll(this.options.scrollContainers).forEach((el, index) => {
 			const scrollPosition = scrollPositions.containers[index];
-			if (!this.validateScrollPosition(scrollPosition)) return;
 			this.scrollTo({ ...scrollPosition }, false, el);
 		});
 	}
