@@ -476,6 +476,7 @@ export default class SwupScrollPlugin extends Plugin {
 					() => {
 						el.scrollTo({
 							top: el.scrollTop,
+							left: el.scrollLeft,
 							behavior: 'instant'
 						});
 					},
