@@ -51,6 +51,14 @@ declare module 'swup' {
 	}
 
 	export interface HookDefinitions {
+		'scroll:apply': {
+			el: Element;
+			top: number;
+			left: number;
+			animate: boolean;
+			start: () => void;
+			end: () => void;
+		};
 		'scroll:start': undefined;
 		'scroll:end': undefined;
 	}
@@ -95,6 +103,7 @@ export default class SwupScrollPlugin extends Plugin {
 	mount() {
 		const swup = this.swup;
 
+		swup.hooks.create('scroll:apply');
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
 
@@ -432,49 +441,52 @@ export default class SwupScrollPlugin extends Plugin {
 	 * Scroll to a specific offset, with optional animation.
 	 */
 	scrollTo(position: number | ScrollPosition, animate = true, scrollContainer?: Element): void {
-		const { top = 0, left = 0 } = typeof position === 'number' ? { top: position } : position;
-
 		// Create dummy visit
 		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
 		const visit = this.swup.createVisit({ to: this.swup.location.url });
 
+		const { top = 0, left = 0 } = typeof position === 'number' ? { top: position } : position;
 		scrollContainer ??= this.getRootScrollContainer();
 
-		const eventTarget = scrollContainer instanceof HTMLHtmlElement ? window : scrollContainer;
+		const start = () => this.swup.hooks.callSync('scroll:start', visit, undefined);
+		const end = () => this.swup.hooks.callSync('scroll:end', visit, undefined);
 
-		/**
-		 * Dispatch the scroll:end hook upon completion
-		 */
-		eventTarget.addEventListener(
-			'scrollend',
-			() => this.swup.hooks.callSync('scroll:end', visit, undefined),
-			{ once: true }
+		this.swup.hooks.callSync(
+			'scroll:apply',
+			visit,
+			{ el: scrollContainer, top, left, animate, start, end },
+			(visit, { el, top, left, animate, start, end }) => {
+				const eventTarget = el instanceof HTMLHtmlElement ? window : el;
+
+				/**
+				 * Dispatch the scroll:start hook immediately
+				 */
+				start();
+
+				/**
+				 * Dispatch the scroll:end hook upon completion
+				 */
+				eventTarget.addEventListener('scrollend', end, { once: true });
+
+				/**
+				 * Make the scroll cancelable upon user interaction
+				 */
+				eventTarget.addEventListener(
+					'wheel',
+					() => {
+						el.scrollTo({
+							top: el.scrollTop,
+							behavior: 'instant'
+						});
+					},
+					{ once: true }
+				);
+
+				const behavior = animate ? 'smooth' : 'instant';
+
+				el.scrollTo({ top, left, behavior });
+			}
 		);
-
-		/**
-		 * Make the scroll cancelable upon user interaction
-		 */
-		eventTarget.addEventListener(
-			'wheel',
-			() => {
-				scrollContainer.scrollTo({
-					top: scrollContainer.scrollTop,
-					behavior: 'instant'
-				});
-			},
-			{ once: true }
-		);
-
-		/**
-		 * Dispatch the scroll:start hook
-		 */
-		this.swup.hooks.callSync('scroll:start', visit, undefined);
-
-		scrollContainer.scrollTo({
-			top,
-			left,
-			behavior: animate ? 'smooth' : 'instant'
-		});
 	}
 
 	/**
