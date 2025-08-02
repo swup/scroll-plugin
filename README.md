@@ -204,7 +204,8 @@ new SwupScrollPlugin({
   markScrollTarget: false,
   offset: 0,
   scrollContainers: `[data-swup-scroll-container]`,
-  shouldResetScrollPosition: (link) => true
+  shouldResetScrollPosition: (link) => true,
+  scrollFunction: undefined
 });
 ```
 
@@ -227,9 +228,15 @@ swup.hooks.on('scroll:start', () => console.log('Swup started scrolling'));
 swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 ```
 
-## Overwriting `swup.scrollTo`
+## Custom scroll function
 
-You can overwrite the scroll function with your own implementation. This way, you can gain full control over how you animate your scroll positions. Here's an example using [GSAP's](https://greensock.com/docs/v3/) [ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin):
+You can overwrite the scroll function with your own implementation by passing it in as the
+`scrollFunction` option. This way, you gain full control over how you animate your scroll positions.
+Below is an example using [GSAP's](https://greensock.com/docs/v3/)
+[ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin).
+
+Note that you are responsible for calling the `start` and `end` functions passed to the scroll
+function to let swup correctly trigger the `scroll:start` and `scroll:end` hooks.
 
 ```js
 
@@ -240,32 +247,25 @@ import { gsap } from 'gsap';
 import ScrollToPlugin from 'gsap/ScrollToPlugin';
 gsap.registerPlugin(ScrollToPlugin);
 
-const swup = new Swup({
-	plugins: [new SwupScrollPlugin()]
-});
-
 /**
  * Use GSAP ScrollToPlugin for animated scrolling
  * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
  */
-swup.scrollTo = (offset, animate, scrollingElement) => {
-  gsap.to(scrollingElement ?? window, {
-    duration: animate ? 0.6 : 0,
-    ease: 'power4.out',
-    scrollTo: {
-      y: offset,
-      autoKill: !isTouch(),
-      onAutoKill: () => {
-        swup.hooks.callSync('scroll:end', undefined);
-      }
-    },
-    onStart: () => {
-      swup.hooks.callSync('scroll:start', undefined);
-    },
-    onComplete: () => {
-      swup.hooks.callSync('scroll:end', undefined);
-    }
-  });
-};
 
+new SwupScrollPlugin({
+  scrollFunction: (el, top, left, animate, start, end) => {
+    gsap.to(el, {
+      duration: animate ? 0.6 : 0,
+      ease: 'power4.out',
+      scrollTo: {
+        y: top,
+        x: left,
+        autoKill: !isTouch(),
+        onAutoKill: () => end()
+      },
+      onStart: () => start(),
+      onComplete: () => end()
+    });
+  }
+})
 ```
