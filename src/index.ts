@@ -20,6 +20,14 @@ export type Options = {
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
+	scrollFunction?: (
+		el: Element,
+		top: number,
+		left: number,
+		animate: boolean,
+		start: () => void,
+		end: () => void
+	) => void;
 };
 
 type ScrollPosition = {
@@ -51,14 +59,6 @@ declare module 'swup' {
 	}
 
 	export interface HookDefinitions {
-		'scroll:apply': {
-			el: Element;
-			top: number;
-			left: number;
-			animate: boolean;
-			start: () => void;
-			end: () => void;
-		};
 		'scroll:start': undefined;
 		'scroll:end': undefined;
 	}
@@ -83,7 +83,8 @@ export default class SwupScrollPlugin extends Plugin {
 		offset: 0,
 		scrollContainers: `[data-swup-scroll-container]`,
 		shouldResetScrollPosition: () => true,
-		markScrollTarget: false
+		markScrollTarget: false,
+		scrollFunction: undefined
 	};
 
 	options: Options;
@@ -103,7 +104,6 @@ export default class SwupScrollPlugin extends Plugin {
 	mount() {
 		const swup = this.swup;
 
-		swup.hooks.create('scroll:apply');
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
 
@@ -451,43 +451,46 @@ export default class SwupScrollPlugin extends Plugin {
 		const start = () => this.swup.hooks.callSync('scroll:start', visit, undefined);
 		const end = () => this.swup.hooks.callSync('scroll:end', visit, undefined);
 
-		this.swup.hooks.callSync(
-			'scroll:apply',
-			visit,
-			{ el: scrollContainer, top, left, animate, start, end },
-			(visit, { el, top, left, animate, start, end }) => {
-				const eventTarget = el instanceof HTMLHtmlElement ? window : el;
+		// Appl scroll via user-supplied scroll function or default one
+		const scrollFunction = this.options.scrollFunction ?? this.applyScroll;
+		scrollFunction(scrollContainer, top, left, animate, start, end);
+	}
 
-				/**
-				 * Dispatch the scroll:start hook immediately
-				 */
-				start();
+	/**
+	 * Default scroll function
+	 */
+	applyScroll(
+		el: Element,
+		top: number,
+		left: number,
+		animate: boolean,
+		start: () => void,
+		end: () => void
+	) {
+		const eventTarget = el instanceof HTMLHtmlElement ? window : el;
 
-				/**
-				 * Dispatch the scroll:end hook upon completion
-				 */
-				eventTarget.addEventListener('scrollend', end, { once: true });
+		// Dispatch the scroll:start hook immediately
+		start();
 
-				/**
-				 * Make the scroll cancelable upon user interaction
-				 */
-				eventTarget.addEventListener(
-					'wheel',
-					() => {
-						el.scrollTo({
-							top: el.scrollTop,
-							left: el.scrollLeft,
-							behavior: 'instant'
-						});
-					},
-					{ once: true }
-				);
+		// Dispatch the scroll:end hook upon completion
+		eventTarget.addEventListener('scrollend', end, { once: true });
 
-				const behavior = animate ? 'smooth' : 'instant';
-
-				el.scrollTo({ top, left, behavior });
-			}
+		// Cancel the scroll upon user interaction
+		eventTarget.addEventListener(
+			'wheel',
+			() => {
+				el.scrollTo({
+					top: el.scrollTop,
+					left: el.scrollLeft,
+					behavior: 'instant'
+				});
+			},
+			{ once: true }
 		);
+
+		const behavior = animate ? 'smooth' : 'instant';
+
+		el.scrollTo({ top, left, behavior });
 	}
 
 	/**
