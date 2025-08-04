@@ -10,9 +10,9 @@
 
 A [swup](https://swup.js.org) plugin for customizable smooth scrolling.
 
-- Enables smooth scrolling
-- Animates scroll position between page visits
-- Animates scrolling to anchors
+- Enable smooth scrolling
+- Animate scroll position between page visits
+- Animate scrolling to anchors
 - Define a custom offset for scroll positions
 - Handle nested scroll containers
 - Emulate scroll target selector
