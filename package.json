@@ -1,7 +1,7 @@
 {
   "name": "@swup/scroll-plugin",
   "amdName": "SwupScrollPlugin",
-  "version": "3.3.2",
+  "version": "4.0.0",
   "description": "A swup plugin for customizable smooth scrolling",
   "type": "module",
   "source": "src/index.ts",
@@ -68,6 +68,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "astro": "^5.10.1",
     "astro-feather": "^1.0.0",
+    "jsdom": "^26.1.0",
     "swup": "^4.8.2",
     "tailwindcss": "^4.1.8",
     "typescript": "^5.8.3",
