@@ -64,4 +64,21 @@ describe('Options', () => {
 			expect.any(Function)
 		);
 	});
+
+	it('should expose scrollTo on the swup instance', () => {
+		const scrollFunction = vi.fn();
+		plugin = new ScrollPlugin({ scrollFunction });
+		swup.use(plugin);
+
+		swup.scrollTo!({ top: 300, left: 50 }, true);
+
+		expect(scrollFunction).toHaveBeenCalledWith(
+			document.documentElement,
+			300,
+			50,
+			true,
+			expect.any(Function),
+			expect.any(Function)
+		);
+	});
 });
