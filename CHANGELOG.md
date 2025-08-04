@@ -2,11 +2,11 @@
 
 ## [4.0.0] - 2025-08-04
 
-- Use a native scroll implementation
+- Drop dependency on [gmrchk/scrl](https://github.com/gmrchk/scrl) in favor of a native scroll implemenation
 - Support nested scroll containers
 - Support scrolling both axis (top, left)
 - New option `scrollFunction` to customize the scroll implementation
-- Unit and end-to-end tests added
+- Added unit and end-to-end tests
 
 ## [3.3.2] - 2024-02-05
 
