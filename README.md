@@ -32,7 +32,7 @@ import SwupScrollPlugin from '@swup/scroll-plugin';
 Or include the minified production file from a CDN:
 
 ```html
-<script src="https://unpkg.com/@swup/scroll-plugin@3"></script>
+<script src="https://unpkg.com/@swup/scroll-plugin@4"></script>
 ```
 
 ## Usage
