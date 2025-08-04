@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.0] - 2025-08-04
+
+- Drop dependency on [gmrchk/scrl](https://github.com/gmrchk/scrl) in favor of a native scroll implementation
+- Support nested scroll containers
+- Support scrolling both axis (top, left)
+- New option `scrollFunction` to customize the scroll implementation
+- Added unit and end-to-end tests
+
 ## [3.3.2] - 2024-02-05
 
 - Pass temporary visit into scroll hooks
@@ -80,6 +88,7 @@
 
 - Initial release
 
+[4.0.0]: https://github.com/swup/scroll-plugin/releases/tag/4.0.0
 [3.3.2]: https://github.com/swup/scroll-plugin/releases/tag/3.3.2
 [3.3.1]: https://github.com/swup/scroll-plugin/releases/tag/3.3.1
 [3.3.0]: https://github.com/swup/scroll-plugin/releases/tag/3.3.0
