@@ -467,7 +467,8 @@ export default class SwupScrollPlugin extends Plugin {
 		start: () => void,
 		end: () => void
 	) {
-		const eventTarget = el instanceof HTMLHtmlElement ? window : el;
+		const eventTarget =
+			el instanceof HTMLHtmlElement || el instanceof HTMLBodyElement ? window : el;
 
 		// Dispatch the scroll:start hook immediately
 		start();
