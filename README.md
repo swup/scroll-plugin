@@ -252,20 +252,24 @@ gsap.registerPlugin(ScrollToPlugin);
  * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
  */
 
-new SwupScrollPlugin({
-  scrollFunction: (el, top, left, animate, start, end) => {
-    gsap.to(el, {
-      duration: animate ? 0.6 : 0,
-      ease: 'power4.out',
-      scrollTo: {
-        y: top,
-        x: left,
-        autoKill: !isTouch(),
-        onAutoKill: () => end()
+new Swup({
+  plugins: [
+    new SwupScrollPlugin({
+      scrollFunction: (el, top, left, animate, start, end) => {
+        gsap.to(el, {
+          duration: animate ? 0.6 : 0,
+          ease: "power4.out",
+          scrollTo: {
+            y: top,
+            x: left,
+            autoKill: window.matchMedia("(hover: hover)").matches,
+            onAutoKill: () => end(),
+          },
+          onStart: () => start(),
+          onComplete: () => end(),
+        });
       },
-      onStart: () => start(),
-      onComplete: () => end()
-    });
-  }
-})
+    }),
+  ]
+});
 ```
