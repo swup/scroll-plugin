@@ -451,7 +451,7 @@ export default class SwupScrollPlugin extends Plugin {
 		const start = () => this.swup.hooks.callSync('scroll:start', visit, undefined);
 		const end = () => this.swup.hooks.callSync('scroll:end', visit, undefined);
 
-		// Appl scroll via user-supplied scroll function or default one
+		// Apply scroll via user-supplied scroll function or default one
 		const scrollFunction = this.options.scrollFunction ?? this.applyScroll;
 		scrollFunction(scrollContainer, top, left, animate, start, end);
 	}
