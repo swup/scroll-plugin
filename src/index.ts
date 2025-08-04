@@ -1,7 +1,12 @@
 import Plugin from '@swup/plugin';
-import { Handler, Visit, queryAll } from 'swup';
-// @ts-expect-error
-import Scrl from 'scrl';
+import { type Handler, type Visit, queryAll } from 'swup';
+import { compute as computeRequiredScrollActions } from 'compute-scroll-into-view';
+
+export type OffsetCallback = (
+	scrollTarget: Element,
+	scrollContainer: Element,
+	position: ScrollPosition
+) => number | ScrollPosition;
 
 export type Options = {
 	doScrollingRightAway: boolean;
@@ -10,13 +15,19 @@ export type Options = {
 		samePageWithHash: boolean;
 		samePage: boolean;
 	};
-	scrollFriction: number;
-	scrollAcceleration: number;
 	getAnchorElement?: (hash: string) => Element | null;
-	offset: number | ((el: Element) => number);
+	offset: number | ScrollPosition | OffsetCallback;
 	scrollContainers: `[data-swup-scroll-container]`;
 	shouldResetScrollPosition: (trigger: Element) => boolean;
 	markScrollTarget?: boolean;
+	scrollFunction?: (
+		el: Element,
+		top: number,
+		left: number,
+		animate: boolean,
+		start: () => void,
+		end: () => void
+	) => void;
 };
 
 type ScrollPosition = {
@@ -33,7 +44,11 @@ type ScrollPositionsCache = Record<string, ScrollPositionsCacheEntry>;
 
 declare module 'swup' {
 	export interface Swup {
-		scrollTo?: (offset: number, animate?: boolean) => void;
+		scrollTo?: (
+			position: number | ScrollPosition,
+			animate?: boolean,
+			scrollContainer?: Element
+		) => void;
 	}
 
 	export interface VisitScroll {
@@ -57,8 +72,6 @@ export default class SwupScrollPlugin extends Plugin {
 
 	requires = { swup: '>=4.2.0' };
 
-	scrl: any;
-
 	defaults: Options = {
 		doScrollingRightAway: false,
 		animateScroll: {
@@ -66,13 +79,12 @@ export default class SwupScrollPlugin extends Plugin {
 			samePageWithHash: true,
 			samePage: true
 		},
-		scrollFriction: 0.3,
-		scrollAcceleration: 0.04,
 		getAnchorElement: undefined,
 		offset: 0,
 		scrollContainers: `[data-swup-scroll-container]`,
 		shouldResetScrollPosition: () => true,
-		markScrollTarget: false
+		markScrollTarget: false,
+		scrollFunction: undefined
 	};
 
 	options: Options;
@@ -86,34 +98,17 @@ export default class SwupScrollPlugin extends Plugin {
 		this.options = { ...this.defaults, ...options };
 	}
 
+	/**
+	 * Run when the plugin is mounted
+	 */
 	mount() {
 		const swup = this.swup;
 
 		swup.hooks.create('scroll:start');
 		swup.hooks.create('scroll:end');
 
-		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
-		const visit = this.swup.createVisit({ to: this.swup.currentPageUrl });
-
-		// Initialize Scrl lib for smooth animations
-		this.scrl = new Scrl({
-			onStart: () => swup.hooks.callSync('scroll:start', visit, undefined),
-			onEnd: () => swup.hooks.callSync('scroll:end', visit, undefined),
-			onCancel: () => swup.hooks.callSync('scroll:end', visit, undefined),
-			friction: this.options.scrollFriction,
-			acceleration: this.options.scrollAcceleration
-		});
-
-		// Add scrollTo method to swup and animate based on current animateScroll option
-		swup.scrollTo = (offset, animate = true) => {
-			if (animate) {
-				this.scrl.scrollTo(offset);
-			} else {
-				swup.hooks.callSync('scroll:start', visit, undefined);
-				window.scrollTo(0, offset);
-				swup.hooks.callSync('scroll:end', visit, undefined);
-			}
-		};
+		/* Add scrollTo method to swup instance */
+		swup.scrollTo = this.scrollTo.bind(this);
 
 		/**
 		 * Disable browser scroll restoration for history visits
@@ -155,7 +150,7 @@ export default class SwupScrollPlugin extends Plugin {
 	}
 
 	/**
-	 * Runs when the plugin is unmounted
+	 * Run when the plugin is unmounted
 	 */
 	unmount() {
 		super.unmount();
@@ -169,11 +164,10 @@ export default class SwupScrollPlugin extends Plugin {
 
 		this.cachedScrollPositions = {};
 		delete this.swup.scrollTo;
-		delete this.scrl;
 	}
 
 	/**
-	 * Detects if a scroll should be animated, based on context
+	 * Detect if a scroll should be animated, based on context
 	 */
 	shouldAnimate(context: keyof Options['animateScroll']): boolean {
 		if (typeof this.options.animateScroll === 'boolean') {
@@ -197,14 +191,35 @@ export default class SwupScrollPlugin extends Plugin {
 	/**
 	 * Get the offset for a scroll
 	 */
-	getOffset = (el?: Element): number => {
-		if (!el) return 0;
+	getOffset = (
+		scrollTarget: Element,
+		scrollContainer: Element,
+		position: ScrollPosition
+	): ScrollPosition => {
+		let offset: number | ScrollPosition;
+
 		// If options.offset is a function, apply and return it
+		// Otherwise, use the actual offset value
 		if (typeof this.options.offset === 'function') {
-			return parseInt(String(this.options.offset(el)), 10);
+			offset = this.options.offset(scrollTarget, scrollContainer, position);
+		} else {
+			offset = this.options.offset;
 		}
-		// Otherwise, return the sanitized offset
-		return parseInt(String(this.options.offset), 10);
+
+		/**
+		 * Normalize offset to an object
+		 * If offset is a number, use it as top and set left to 0
+		 */
+		if (
+			typeof offset === 'object' &&
+			typeof offset.top === 'number' &&
+			typeof offset.left === 'number'
+		) {
+			return offset;
+		} else {
+			const top = parseInt(String(offset ?? ''), 10) || 0;
+			return { top, left: 0 };
+		}
 	};
 
 	/**
@@ -215,10 +230,10 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Scroll to top on `scroll:top` hook
+	 * Scroll to top/left on `scroll:top` hook
 	 */
 	handleScrollToTop: Handler<'scroll:top'> = (visit) => {
-		this.swup.scrollTo?.(0, visit.scroll.animate);
+		this.scrollTo({ top: 0, left: 0 }, visit.scroll.animate);
 		return true;
 	};
 
@@ -237,7 +252,7 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Attempts to scroll to an anchor
+	 * Attempt to scroll to an anchor
 	 */
 	maybeScrollToAnchor(hash?: string, animate: boolean = false): boolean {
 		if (!hash) {
@@ -254,9 +269,7 @@ export default class SwupScrollPlugin extends Plugin {
 			return false;
 		}
 
-		const { top: elementTop } = element.getBoundingClientRect();
-		const top = elementTop + window.scrollY - this.getOffset(element);
-		this.swup.scrollTo?.(top, animate);
+		this.scrollElementIntoView(element, animate);
 
 		return true;
 	}
@@ -297,7 +310,7 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Scrolls the window
+	 * Scroll between pages
 	 */
 	doScrollingBetweenPages = (visit: Visit): void => {
 		// Bail early on popstate if not animated: browser will handle it
@@ -318,10 +331,10 @@ export default class SwupScrollPlugin extends Plugin {
 
 		// Finally, scroll to either the stored scroll position or to the very top of the page
 		const scrollPositions = this.getCachedScrollPositions(visit.to.url);
-		const top = scrollPositions?.window?.top || 0;
+		const { top = 0, left = 0 } = scrollPositions?.window || { top: 0, left: 0 };
 
 		// Give possible JavaScript time to execute before scrolling
-		requestAnimationFrame(() => this.swup.scrollTo?.(top, visit.scroll.animate));
+		requestAnimationFrame(() => this.scrollTo({ top, left }, visit.scroll.animate));
 
 		visit.scroll.scrolledToContent = true;
 	};
@@ -345,7 +358,7 @@ export default class SwupScrollPlugin extends Plugin {
 	};
 
 	/**
-	 * Stores the scroll positions for the current URL
+	 * Store the scroll positions for the current URL
 	 */
 	cacheScrollPositions(url: string): void {
 		const cacheKey = this.swup.resolveUrl(url);
@@ -413,5 +426,96 @@ export default class SwupScrollPlugin extends Plugin {
 		}
 		currentTarget?.removeAttribute('data-swup-scroll-target');
 		newTarget?.setAttribute('data-swup-scroll-target', '');
+	}
+
+	/**
+	 * Get the root scrolling element
+	 */
+	getRootScrollContainer() {
+		return document.scrollingElement instanceof HTMLElement
+			? document.scrollingElement
+			: document.documentElement;
+	}
+
+	/**
+	 * Scroll to a specific offset, with optional animation.
+	 */
+	scrollTo(position: number | ScrollPosition, animate = true, scrollContainer?: Element): void {
+		// Create dummy visit
+		// @ts-expect-error: createVisit is currently private, need to make this semi-public somehow
+		const visit = this.swup.createVisit({ to: this.swup.location.url });
+
+		const { top = 0, left = 0 } = typeof position === 'number' ? { top: position } : position;
+		scrollContainer ??= this.getRootScrollContainer();
+
+		const start = () => this.swup.hooks.callSync('scroll:start', visit, undefined);
+		const end = () => this.swup.hooks.callSync('scroll:end', visit, undefined);
+
+		// Apply scroll via user-supplied scroll function or default one
+		const scrollFunction = this.options.scrollFunction ?? this.applyScroll;
+		scrollFunction(scrollContainer, top, left, animate, start, end);
+	}
+
+	/**
+	 * Default scroll function
+	 */
+	applyScroll(
+		el: Element,
+		top: number,
+		left: number,
+		animate: boolean,
+		start: () => void,
+		end: () => void
+	) {
+		const eventTarget =
+			el instanceof HTMLHtmlElement || el instanceof HTMLBodyElement ? window : el;
+
+		// Dispatch the scroll:start hook immediately
+		start();
+
+		// Dispatch the scroll:end hook upon completion
+		eventTarget.addEventListener('scrollend', end, { once: true });
+
+		// Cancel the scroll upon user interaction
+		eventTarget.addEventListener(
+			'wheel',
+			() => {
+				el.scrollTo({
+					top: el.scrollTop,
+					left: el.scrollLeft,
+					behavior: 'instant'
+				});
+			},
+			{ once: true }
+		);
+
+		const behavior = animate ? 'smooth' : 'instant';
+
+		el.scrollTo({ top, left, behavior });
+	}
+
+	/**
+	 * Scroll an element into view by recursively scrolling all scrollable ancestors
+	 * Mimics browser's native scrollIntoView behavior for nested scrollable containers
+	 */
+	scrollElementIntoView(scrollTarget: Element, animate: boolean = false): void {
+		const scrollActions = computeRequiredScrollActions(scrollTarget, {
+			scrollMode: 'always',
+			block: 'start',
+			inline: 'start'
+		});
+
+		scrollActions.forEach(({ top, left, el: scrollContainer }) => {
+			const { top: topOffset = 0, left: leftOffset = 0 } = this.getOffset(
+				scrollTarget,
+				scrollContainer,
+				{ top, left }
+			);
+			this.scrollTo(
+				{ top: top - topOffset, left: left - leftOffset },
+				animate,
+				scrollContainer
+			);
+		});
 	}
 }

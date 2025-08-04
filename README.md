@@ -1,11 +1,20 @@
-# Swup Scroll plugin
+# Swup Scroll Plugin
+
+<!-- swup-docs-ignore-start -->
+
+[![Unit Tests](https://img.shields.io/github/actions/workflow/status/swup/scroll-plugin/unit-tests.yml?branch=next&label=unit%20tests)](https://github.com/swup/scroll-plugin/actions/workflows/unit-tests.yml)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/swup/scroll-plugin/e2e-tests.yml?branch=next&label=e2e%20tests)](https://github.com/swup/scroll-plugin/actions/workflows/e2e-tests.yml)
+[![License](https://img.shields.io/github/license/swup/scroll-plugin.svg)](https://github.com/swup/scroll-plugin/blob/main/LICENSE)
+
+<!-- swup-docs-ignore-end -->
 
 A [swup](https://swup.js.org) plugin for customizable smooth scrolling.
 
-- Enables acceleration-based smooth scrolling
-- Animates scroll position between page visits
-- Animates scrolling to anchors
+- Enable smooth scrolling
+- Animate scroll position between page visits
+- Animate scrolling to anchors
 - Define a custom offset for scroll positions
+- Handle nested scroll containers
 - Emulate scroll target selector
 
 ## Installation
@@ -23,7 +32,7 @@ import SwupScrollPlugin from '@swup/scroll-plugin';
 Or include the minified production file from a CDN:
 
 ```html
-<script src="https://unpkg.com/@swup/scroll-plugin@3"></script>
+<script src="https://unpkg.com/@swup/scroll-plugin@4"></script>
 ```
 
 ## Usage
@@ -98,10 +107,6 @@ For finer control, you can pass an object:
 }
 ```
 
-### scrollFriction and scrollAcceleration
-
-The animation behavior of the scroll animation can be adjusted by setting `scrollFriction` and `scrollAcceleration`.
-
 ### getAnchorElement
 
 Customize how the scroll target is found on the page. Defaults to standard browser behavior (`#id` first, `a[name]` second).
@@ -139,18 +144,23 @@ To highlight the current target element, use the `data-swup-scroll-target` attri
 
 ### Offset
 
-Offset to substract from the final scroll position, to account for fixed headers. Can be either a number or a function that returns the offset.
+Offset to substract from the final scroll position, to account for fixed headers. Can be either a
+static number or a function that returns a value based on the scroll target. To apply differing
+offsets for vertical and horizontal scrolling, return an object with `top` and `left` properties.
 
 ```javascript
 {
   // Number: fixed offset in px
   offset: 30,
 
+  // Object: fixed vertical and horizontal offset in px
+  offset: { top: 30, left: 10 },
+
   // Function: calculate offset before scrolling
   offset: () => document.querySelector('#header').offsetHeight,
 
-  // The scroll target element is passed into the function
-  offset: target => target.offsetHeight * 2,
+  // The scroll target and container are passed into the function
+  offset: (scrollTarget, scrollContainer) => target.offsetHeight * 2,
 }
 ```
 
@@ -190,13 +200,12 @@ new SwupScrollPlugin({
     samePageWithHash: true,
     samePage: true
   },
-  scrollFriction: 0.3,
-  scrollAcceleration: 0.04,
   getAnchorElement: null,
   markScrollTarget: false,
   offset: 0,
   scrollContainers: `[data-swup-scroll-container]`,
-  shouldResetScrollPosition: (link) => true
+  shouldResetScrollPosition: (link) => true,
+  scrollFunction: undefined
 });
 ```
 
@@ -219,9 +228,15 @@ swup.hooks.on('scroll:start', () => console.log('Swup started scrolling'));
 swup.hooks.on('scroll:end', () => console.log('Swup finished scrolling'));
 ```
 
-## Overwriting `swup.scrollTo`
+## Custom scroll function
 
-You can overwrite the scroll function with your own implementation. This way, you can gain full control over how you animate your scroll positions. Here's an example using [GSAP's](https://greensock.com/docs/v3/) [ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin):
+You can overwrite the scroll function with your own implementation by passing it in as the
+`scrollFunction` option. This way, you gain full control over how you animate your scroll positions.
+Below is an example using [GSAP's](https://greensock.com/docs/v3/)
+[ScrollToPlugin](https://greensock.com/docs/v3/Plugins/ScrollToPlugin).
+
+Note that you are responsible for calling the `start` and `end` functions passed to the scroll
+function to let swup correctly trigger the `scroll:start` and `scroll:end` hooks.
 
 ```js
 
@@ -232,41 +247,29 @@ import { gsap } from 'gsap';
 import ScrollToPlugin from 'gsap/ScrollToPlugin';
 gsap.registerPlugin(ScrollToPlugin);
 
-const swup = new Swup({
-	plugins: [new SwupScrollPlugin()]
-});
-
 /**
- * Overwrite swup's scrollTo function
+ * Use GSAP ScrollToPlugin for animated scrolling
+ * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
  */
-swup.scrollTo = (offsetY, animate = true) => {
-	if (!animate) {
-		swup.hooks.callSync('scroll:start', undefined);
-		window.scrollTo(0, offsetY);
-		swup.hooks.callSync('scroll:end', undefined);
-		return;
-	}
 
-	/**
-	 * Use GSAP ScrollToPlugin for animated scrolling
-	 * @see https://greensock.com/docs/v3/Plugins/ScrollToPlugin
-	 */
-	gsap.to(window, {
-		duration: 0.8,
-		scrollTo: offsetY,
-		ease: 'power4.inOut',
-		autoKill: true,
-		onStart: () => {
-			swup.hooks.callSync('scroll:start', undefined);
-		},
-		onComplete: () => {
-			swup.hooks.callSync('scroll:end', undefined);
-		},
-		onAutoKill: () => {
-			swup.hooks.callSync('scroll:end', undefined);
-		},
-	});
-
-};
-
+new Swup({
+  plugins: [
+    new SwupScrollPlugin({
+      scrollFunction: (el, top, left, animate, start, end) => {
+        gsap.to(el, {
+          duration: animate ? 0.6 : 0,
+          ease: "power4.out",
+          scrollTo: {
+            y: top,
+            x: left,
+            autoKill: window.matchMedia("(hover: hover)").matches,
+            onAutoKill: () => end(),
+          },
+          onStart: () => start(),
+          onComplete: () => end(),
+        });
+      },
+    }),
+  ]
+});
 ```

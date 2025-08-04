@@ -1,0 +1,25 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE_DESCRIPTION } from '../consts.ts';
+
+import Nav from '../components/Nav.astro';
+---
+
+<Layout isFrontPage={true}>
+	<p slot="after-header">{SITE_DESCRIPTION}</p>
+
+	<Nav
+		links={[
+			{
+				href: '/anchors-1/',
+				title: 'Anchors',
+				description: 'Scroll to anchors on the same page'
+			},
+			{
+				href: '/anchors-full-size/',
+				title: 'Full-Size container',
+				description: 'Scroll inside of a full-size container'
+			}
+		]}
+	/>
+</Layout>
