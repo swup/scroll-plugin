@@ -5,19 +5,9 @@ import Swup, { Visit } from 'swup';
 describe('Options', () => {
 	let swup: Swup;
 	let plugin: ScrollPlugin;
-	let visit: Visit;
 
 	beforeEach(() => {
-		document.body.innerHTML = '<h1>Test</h1>';
-
 		swup = new Swup();
-
-		// @ts-ignore - createVisit is marked internal
-		visit = swup.createVisit({ url: '/' });
-		visit.to.document = new window.DOMParser().parseFromString(
-			'<html><head></head><body></body></html>',
-			'text/html'
-		);
 	});
 
 	it('should respect animateScroll', () => {
