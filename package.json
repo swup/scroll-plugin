@@ -68,6 +68,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "astro": "^5.10.1",
     "astro-feather": "^1.0.0",
+    "jsdom": "^26.1.0",
     "swup": "^4.8.2",
     "tailwindcss": "^4.1.8",
     "typescript": "^5.8.3",
